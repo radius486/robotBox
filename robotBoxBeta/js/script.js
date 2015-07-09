@@ -72,10 +72,26 @@
 			else if(player.pos[1] > canvas.height - player.sprite.size[1]/2) {
 				moveWorld = 4;
 			}
-			console.log(player.pos[1]);
-			console.log(moveWorld);
 		}
 	};
+
+	var boxes = [[100, 100], [200, 200], [300, 300]];
+	var box = new Box(100, 100);
+
+	function Box (xpos, ypos) {
+		this[0] = xpos;
+		this[1] = ypos;
+		this.width = 40;
+		this.height = 40;
+	}
+
+	function drowBoxes() {
+		for(var i=0; i<boxes.length; i++) {
+			ctx.fillStyle = '#cccccc';
+			ctx.fillRect(boxes[i][0], boxes[i][1] ,40 ,40);
+		}
+	}
+
 
 	resources.load([
 		'images/sprites.png',
@@ -102,6 +118,7 @@
 	function render() {
 		clearCanvas();
 		player.render();
+		drowBox(box[0], box[1]);
 	}
 
 	function update(dt) {
@@ -118,32 +135,57 @@
 		switch(moveWorld){
 			case 0:
 				player.pos[0] = player.pos[0];
+				box[0] = box[0];
 				break;
 			case 1:
 				player.pos[0] += player.speed * dt;
+				box[0] += player.speed * dt;
 				if(player.pos[0] > canvas.width/2) {
 					moveWorld = 0;
 				}
 				break;
 			case 2:
 				player.pos[0] -= player.speed * dt;
+				box[0] -= player.speed * dt;
 				if(player.pos[0] < canvas.width/2) {
 					moveWorld = 0;
 				}
 				break;
 			case 3:
 				player.pos[1] += player.speed * dt;
+				box[1] += player.speed * dt;
 				if(player.pos[1] > canvas.height/2) {
 					moveWorld = 0;
 				}
 				break;
 			case 4:
 				player.pos[1] -= player.speed * dt;
+				box[1] -= player.speed * dt;
 				if(player.pos[1] < canvas.height/2) {
 					moveWorld = 0;
 				}
 				break;
 		}
+	}
+
+
+	function renderEntities(list) {
+		for(var i=0; i<list.length; i++) {
+			renderEntity(list[i]);
+		}
+	}
+
+	function renderEntity(entity,angle) {
+		ctx.save();
+		ctx.translate(entity.pos[0], entity.pos[1]);
+		ctx.rotate(angle);
+		entity.sprite.render(ctx);
+		ctx.restore();
+	}
+
+	function drowBox(x, y) {
+		ctx.fillStyle = '#cccccc';
+		ctx.fillRect(x, y ,40 ,40);
 	}
 
 	canvas.addEventListener("mousemove", player.target, false);

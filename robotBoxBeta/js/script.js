@@ -21,6 +21,7 @@
 
 	var player = {
 		pos:[30, 30],
+		lastPosition: [],
 		cursor: [200, 200],
 		speed: 200,
 		sprite: new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]),
@@ -35,7 +36,7 @@
 							ctx.fillRect(this.cursor[0]-2, this.cursor[1]-2,4,4);
 		},
 		move: function(dt) {
-			lastPosition=[this.pos[0] ,this.pos[1]];
+			this.lastPosition = [this.pos[0] ,this.pos[1]];
 			if(input.isDown('DOWN') || input.isDown('s'))
 				this.pos[1]+= this.speed * dt;
 			if(input.isDown('UP') || input.isDown('w'))
@@ -76,14 +77,37 @@
 		}
 	};
 
-	var boxes = [[100, 100], [200, 200], [300, 300], [200, 100], [400, 100], [300, 200], [100, 400], [600, 300], [400, 400]];
+	var boxCords = [[100, 100], [200, 200], [300, 300], [200, 100], [400, 100], [300, 200], [100, 400], [600, 300], [400, 400]];
 
-	function drowBoxes() {
-		for(var i=0; i<boxes.length; i++) {
-			ctx.fillStyle = '#cccccc';
-			ctx.fillRect(boxes[i][0], boxes[i][1] ,40 ,40);
+	var boxes = [];
+
+	/*function createBoxes() {
+		for(var i=0; i<boxCords.length; i++) {
+			boxes.push({
+				pos: [boxCords[i][0], boxCords[i][1]],
+				sprite: new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1]),
+				energy: 3
+			});
+		}
+	}*/
+
+	function createBoxes() {
+		for(var i=0; i<boxCords.length; i++) {
+			boxes.push({
+				pos: [boxCords[i][0], boxCords[i][1]],
+				sprite: new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1]),
+				energy: 3
+			});
 		}
 	}
+
+	function Items() {
+		this.pos = pos;
+		this.sprite = sptite;
+		this.energy = energy;
+	}
+
+	createBoxes();
 
 	/*var box = new Box(100, 100);
 
@@ -98,7 +122,7 @@
 	resources.load([
 		'images/sprites.png',
 		'images/enemie.png',
-		'images/walls.png'
+		'images/box.png'
 	]);
 
 	resources.onReady(init);
@@ -120,13 +144,14 @@
 	function render() {
 		clearCanvas();
 		player.render();
-		drowBoxes();
+		renderItems(boxes);
 	}
 
 	function update(dt) {
 		player.move(dt);
 		player.checkBonds();
 		moveWorldF(dt);
+		checkCollisions();
 	};
 
 	function clearCanvas(){
@@ -143,6 +168,15 @@
 						pos[0]+size[0]/2, pos[1]+size[1]/2,
 						pos2[0]-size2[0]/2, pos2[1]-size2[1]/2,
 						pos2[0]+size2[0]/2, pos2[1]+size2[1]/2);
+	}
+
+	function checkCollisions() {
+		// Boxes with player
+		for(var i=0;i<boxes.length;i++){
+			if(boxCollides(player.pos, player.sprite.size, boxes[i].pos, boxes[i].sprite.size)) {
+				player.pos = player.lastPosition;
+			}
+		}
 	}
 
 	function moveWorldF(dt) {
@@ -186,16 +220,16 @@
 		for(var i=0; i<list.length; i++) {
 			switch(direction){
 				case 1:
-					list[i][0] += delta;
+					list[i].pos[0] += delta;
 					break;
 				case 2:
-					list[i][0] -= delta;
+					list[i].pos[0] -= delta;
 					break;
 				case 3:
-					list[i][1] += delta;
+					list[i].pos[1] += delta;
 					break;
 				case 4:
-					list[i][1] -= delta;
+					list[i].pos[1] -= delta;
 					break;
 			}
 		}
@@ -215,6 +249,16 @@
 		entity.sprite.render(ctx);
 		ctx.restore();
 	}*/
+
+
+	function renderItems(items) {
+		for(var i=0; i<items.length; i++) {
+			ctx.save();
+			ctx.translate(items[i].pos[0], items[i].pos[1]);
+			items[i].sprite.render(ctx);
+			ctx.restore();
+		}
+	}
 
 	canvas.addEventListener("mousemove", player.target, false);
 

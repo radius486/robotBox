@@ -13,6 +13,7 @@
 
 	var moveWorld = 0;
 	var activeWorld = false;
+	var worldSpeed = 300;
 
 	var lastTime;
 	var canvas = document.getElementById("b");
@@ -75,15 +76,7 @@
 		}
 	};
 
-	var boxes = [[100, 100], [200, 200], [300, 300]];
-	var box = new Box(100, 100);
-
-	function Box (xpos, ypos) {
-		this[0] = xpos;
-		this[1] = ypos;
-		this.width = 40;
-		this.height = 40;
-	}
+	var boxes = [[100, 100], [200, 200], [300, 300], [200, 100], [400, 100], [300, 200], [100, 400], [600, 300], [400, 400]];
 
 	function drowBoxes() {
 		for(var i=0; i<boxes.length; i++) {
@@ -91,6 +84,15 @@
 			ctx.fillRect(boxes[i][0], boxes[i][1] ,40 ,40);
 		}
 	}
+
+	/*var box = new Box(100, 100);
+
+	function Box (xpos, ypos) {
+		this[0] = xpos;
+		this[1] = ypos;
+		this.width = 40;
+		this.height = 40;
+	}*/
 
 
 	resources.load([
@@ -118,7 +120,7 @@
 	function render() {
 		clearCanvas();
 		player.render();
-		drowBox(box[0], box[1]);
+		drowBoxes();
 	}
 
 	function update(dt) {
@@ -135,32 +137,32 @@
 		switch(moveWorld){
 			case 0:
 				player.pos[0] = player.pos[0];
-				box[0] = box[0];
+				player.pos[1] = player.pos[1];
 				break;
 			case 1:
-				player.pos[0] += player.speed * dt;
-				box[0] += player.speed * dt;
+				player.pos[0] += worldSpeed * dt;
+				changePosition(boxes, worldSpeed* dt, 1);
 				if(player.pos[0] > canvas.width/2) {
 					moveWorld = 0;
 				}
 				break;
 			case 2:
-				player.pos[0] -= player.speed * dt;
-				box[0] -= player.speed * dt;
+				player.pos[0] -= worldSpeed * dt;
+				changePosition(boxes, worldSpeed* dt, 2);
 				if(player.pos[0] < canvas.width/2) {
 					moveWorld = 0;
 				}
 				break;
 			case 3:
-				player.pos[1] += player.speed * dt;
-				box[1] += player.speed * dt;
+				player.pos[1] += worldSpeed* dt;
+				changePosition(boxes, worldSpeed* dt, 3);
 				if(player.pos[1] > canvas.height/2) {
 					moveWorld = 0;
 				}
 				break;
 			case 4:
-				player.pos[1] -= player.speed * dt;
-				box[1] -= player.speed * dt;
+				player.pos[1] -= worldSpeed * dt;
+				changePosition(boxes, worldSpeed* dt, 4);
 				if(player.pos[1] < canvas.height/2) {
 					moveWorld = 0;
 				}
@@ -168,8 +170,27 @@
 		}
 	}
 
+	function changePosition(list, delta, direction) {
+		for(var i=0; i<list.length; i++) {
+			switch(direction){
+				case 1:
+					list[i][0] += delta;
+					break;
+				case 2:
+					list[i][0] -= delta;
+					break;
+				case 3:
+					list[i][1] += delta;
+					break;
+				case 4:
+					list[i][1] -= delta;
+					break;
+			}
+		}
+	}
 
-	function renderEntities(list) {
+
+	/*function renderEntities(list) {
 		for(var i=0; i<list.length; i++) {
 			renderEntity(list[i]);
 		}
@@ -181,12 +202,7 @@
 		ctx.rotate(angle);
 		entity.sprite.render(ctx);
 		ctx.restore();
-	}
-
-	function drowBox(x, y) {
-		ctx.fillStyle = '#cccccc';
-		ctx.fillRect(x, y ,40 ,40);
-	}
+	}*/
 
 	canvas.addEventListener("mousemove", player.target, false);
 

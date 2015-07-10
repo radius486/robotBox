@@ -36,7 +36,7 @@
 							ctx.fillRect(this.cursor[0]-2, this.cursor[1]-2,4,4);
 		},
 		move: function(dt) {
-			if(moveWorld == 0) {
+			if(moveWorld == 0 && this.energy > 0) {
 				this.lastPosition = [this.pos[0] ,this.pos[1]];
 				if(input.isDown('DOWN') || input.isDown('s'))
 					this.pos[1]+= this.speed * dt;
@@ -81,23 +81,27 @@
 
 	// Boxes
 	var boxCords = [[100, 100], [200, 200], [300, 300], [200, 100], [400, 100], [300, 200], [100, 400], [600, 300], [400, 400]];
-
 	var boxes = [];
 
 	// Energy
 	var energyCords =  [[200, 300],[400, 600]];
-
 	var energy = [];
+
+	// Bombs
+	var bombCords = [[300, 100], [300, 400]];
+	var bombs = [];
 
 	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 3);
 	createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [20, 20], 16, [0, 1])), 10);
+	createItems(bombCords, bombs, (new Sprite('images/bomb.png', [0, 0], [20, 20], 16, [0, 1])), 40);
 
 
 	resources.load([
 		'images/sprites.png',
 		'images/enemie.png',
 		'images/box.png',
-		'images/energy.png'
+		'images/energy.png',
+		'images/bomb.png'
 	]);
 
 	resources.onReady(init);
@@ -121,6 +125,7 @@
 		player.render();
 		renderItems(boxes);
 		renderItems(energy);
+		renderItems(bombs);
 	}
 
 	function update(dt) {
@@ -147,18 +152,27 @@
 	}
 
 	function checkCollisions() {
-		// Boxes with player
+		// Player with boxes
 		for(var i=0;i<boxes.length;i++){
 			if(boxCollides(player.pos, player.sprite.size, boxes[i].pos, boxes[i].sprite.size)) {
 				player.pos = player.lastPosition;
 			}
 		}
 
-		// Enery with player
+		// Player with energy
 		for(var i=0;i<energy.length;i++){
 			if(boxCollides(player.pos, player.sprite.size, energy[i].pos, energy[i].sprite.size)) {
 				player.energy+=energy[i].energy;
 				energy.splice(i, 1);
+				console.log(player.energy);
+			}
+		}
+
+		// Player with bombs
+		for(var i=0;i<bombs.length;i++){
+			if(boxCollides(player.pos, player.sprite.size, bombs[i].pos, bombs[i].sprite.size)) {
+				player.energy-=bombs[i].energy;
+				bombs.splice(i, 1);
 				console.log(player.energy);
 			}
 		}
@@ -174,6 +188,7 @@
 				player.pos[0] += worldSpeed * dt;
 				changePosition(boxes, worldSpeed* dt, 1);
 				changePosition(energy, worldSpeed* dt, 1);
+				changePosition(bombs, worldSpeed* dt, 1);
 				if(player.pos[0] > canvas.width/2) {
 					moveWorld = 0;
 				}
@@ -182,6 +197,7 @@
 				player.pos[0] -= worldSpeed * dt;
 				changePosition(boxes, worldSpeed* dt, 2);
 				changePosition(energy, worldSpeed* dt, 2);
+				changePosition(bombs, worldSpeed* dt, 2);
 				if(player.pos[0] < canvas.width/2) {
 					moveWorld = 0;
 				}
@@ -190,6 +206,7 @@
 				player.pos[1] += worldSpeed* dt;
 				changePosition(boxes, worldSpeed* dt, 3);
 				changePosition(energy, worldSpeed* dt, 3);
+				changePosition(bombs, worldSpeed* dt, 3);
 				if(player.pos[1] > canvas.height/2) {
 					moveWorld = 0;
 				}
@@ -198,6 +215,7 @@
 				player.pos[1] -= worldSpeed * dt;
 				changePosition(boxes, worldSpeed* dt, 4);
 				changePosition(energy, worldSpeed* dt, 4);
+				changePosition(bombs, worldSpeed* dt, 4);
 				if(player.pos[1] < canvas.height/2) {
 					moveWorld = 0;
 				}
@@ -205,6 +223,7 @@
 		}
 	}
 
+	//Change items position when world is moving.
 	function changePosition(list, delta, direction) {
 		for(var i=0; i<list.length; i++) {
 			switch(direction){

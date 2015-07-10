@@ -91,23 +91,11 @@
 		}
 	}*/
 
-	function createBoxes() {
-		for(var i=0; i<boxCords.length; i++) {
-			boxes.push({
-				pos: [boxCords[i][0], boxCords[i][1]],
-				sprite: new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1]),
-				energy: 3
-			});
-		}
-	}
 
-	function Items() {
-		this.pos = pos;
-		this.sprite = sptite;
-		this.energy = energy;
-	}
 
-	createBoxes();
+	//createBoxes();
+	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 3);
+	console.log(boxes);
 
 	/*var box = new Box(100, 100);
 
@@ -250,6 +238,28 @@
 		ctx.restore();
 	}*/
 
+	/*function createBoxes() {
+		for(var i=0; i<boxCords.length; i++) {
+			var item = new Items([boxCords[i][0], boxCords[i][1]], (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 3);
+			boxes.push(
+				item
+			);
+		}
+	}*/
+
+	function createItems(coords, array, sprite, energy) {
+		for(var i=0; i<coords.length; i++) {
+			var item = new Items([coords[i][0], coords[i][1]], sprite, energy);
+			array.push(item);
+		}
+	}
+
+	// Object constructor
+	function Items(pos, sprite, energy) {
+		this.pos = pos;
+		this.sprite = sprite;
+		this.energy = energy;
+	}
 
 	function renderItems(items) {
 		for(var i=0; i<items.length; i++) {

@@ -12,7 +12,6 @@
 	})();
 
 	var moveWorld = 0;
-	var activeWorld = false;
 	var worldSpeed = 300;
 
 	var lastTime;
@@ -24,6 +23,7 @@
 		lastPosition: [],
 		cursor: [200, 200],
 		speed: 200,
+		energy: 50,
 		sprite: new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]),
 		render: function () {
 							ctx.save();
@@ -36,15 +36,17 @@
 							ctx.fillRect(this.cursor[0]-2, this.cursor[1]-2,4,4);
 		},
 		move: function(dt) {
-			this.lastPosition = [this.pos[0] ,this.pos[1]];
-			if(input.isDown('DOWN') || input.isDown('s'))
-				this.pos[1]+= this.speed * dt;
-			if(input.isDown('UP') || input.isDown('w'))
-				this.pos[1]-= this.speed * dt;
-			if(input.isDown('LEFT') || input.isDown('a'))
-				this.pos[0]-= this.speed * dt;
-			if(input.isDown('RIGHT') || input.isDown('d'))
-				this.pos[0]+= this.speed * dt;
+			if(moveWorld == 0) {
+				this.lastPosition = [this.pos[0] ,this.pos[1]];
+				if(input.isDown('DOWN') || input.isDown('s'))
+					this.pos[1]+= this.speed * dt;
+				if(input.isDown('UP') || input.isDown('w'))
+					this.pos[1]-= this.speed * dt;
+				if(input.isDown('LEFT') || input.isDown('a'))
+					this.pos[0]-= this.speed * dt;
+				if(input.isDown('RIGHT') || input.isDown('d'))
+					this.pos[0]+= this.speed * dt;
+			}
 		},
 		target: function(e) {
 			if (e.pageX != undefined && e.pageY != undefined) {
@@ -77,40 +79,25 @@
 		}
 	};
 
+	// Boxes
 	var boxCords = [[100, 100], [200, 200], [300, 300], [200, 100], [400, 100], [300, 200], [100, 400], [600, 300], [400, 400]];
 
 	var boxes = [];
 
-	/*function createBoxes() {
-		for(var i=0; i<boxCords.length; i++) {
-			boxes.push({
-				pos: [boxCords[i][0], boxCords[i][1]],
-				sprite: new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1]),
-				energy: 3
-			});
-		}
-	}*/
+	// Energy
+	var energyCords =  [[200, 300],[400, 600]];
 
+	var energy = [];
 
-
-	//createBoxes();
 	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 3);
-	console.log(boxes);
-
-	/*var box = new Box(100, 100);
-
-	function Box (xpos, ypos) {
-		this[0] = xpos;
-		this[1] = ypos;
-		this.width = 40;
-		this.height = 40;
-	}*/
+	createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [20, 20], 16, [0, 1])), 10);
 
 
 	resources.load([
 		'images/sprites.png',
 		'images/enemie.png',
-		'images/box.png'
+		'images/box.png',
+		'images/energy.png'
 	]);
 
 	resources.onReady(init);
@@ -133,6 +120,7 @@
 		clearCanvas();
 		player.render();
 		renderItems(boxes);
+		renderItems(energy);
 	}
 
 	function update(dt) {
@@ -165,6 +153,15 @@
 				player.pos = player.lastPosition;
 			}
 		}
+
+		// Enery with player
+		for(var i=0;i<energy.length;i++){
+			if(boxCollides(player.pos, player.sprite.size, energy[i].pos, energy[i].sprite.size)) {
+				player.energy+=energy[i].energy;
+				energy.splice(i, 1);
+				console.log(player.energy);
+			}
+		}
 	}
 
 	function moveWorldF(dt) {
@@ -176,6 +173,7 @@
 			case 1:
 				player.pos[0] += worldSpeed * dt;
 				changePosition(boxes, worldSpeed* dt, 1);
+				changePosition(energy, worldSpeed* dt, 1);
 				if(player.pos[0] > canvas.width/2) {
 					moveWorld = 0;
 				}
@@ -183,6 +181,7 @@
 			case 2:
 				player.pos[0] -= worldSpeed * dt;
 				changePosition(boxes, worldSpeed* dt, 2);
+				changePosition(energy, worldSpeed* dt, 2);
 				if(player.pos[0] < canvas.width/2) {
 					moveWorld = 0;
 				}
@@ -190,6 +189,7 @@
 			case 3:
 				player.pos[1] += worldSpeed* dt;
 				changePosition(boxes, worldSpeed* dt, 3);
+				changePosition(energy, worldSpeed* dt, 3);
 				if(player.pos[1] > canvas.height/2) {
 					moveWorld = 0;
 				}
@@ -197,6 +197,7 @@
 			case 4:
 				player.pos[1] -= worldSpeed * dt;
 				changePosition(boxes, worldSpeed* dt, 4);
+				changePosition(energy, worldSpeed* dt, 4);
 				if(player.pos[1] < canvas.height/2) {
 					moveWorld = 0;
 				}
@@ -238,15 +239,7 @@
 		ctx.restore();
 	}*/
 
-	/*function createBoxes() {
-		for(var i=0; i<boxCords.length; i++) {
-			var item = new Items([boxCords[i][0], boxCords[i][1]], (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 3);
-			boxes.push(
-				item
-			);
-		}
-	}*/
-
+	// Items implementation
 	function createItems(coords, array, sprite, energy) {
 		for(var i=0; i<coords.length; i++) {
 			var item = new Items([coords[i][0], coords[i][1]], sprite, energy);

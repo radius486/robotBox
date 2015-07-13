@@ -117,9 +117,15 @@
 	// Explosions
 	var explosions = [];
 
+	// Enemies
+	var enemiesCords=[[350,100],[400,100],[450,100]];
+	var enemies=[];
+
 	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 50);
 	createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [20, 20], 16, [0, 1])), 10);
 	createItems(bombCords, bombs, (new Sprite('images/bomb.png', [0, 0], [20, 20], 16, [0, 1])), 40);
+	//createItems(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [36, 56],6, [0, 1, 2, 3, 2, 1])), 100);
+	createEntities(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [36, 56],6, [0, 1, 2, 3, 2, 1])),100);
 
 
 	resources.load([
@@ -149,6 +155,7 @@
 	function render() {
 		clearCanvas();
 		renderItems([[boxes], [energy], [bombs], [bullets, 1], [explosions]]);
+		renderEntities(enemies);
 		player.render();
 	}
 
@@ -197,6 +204,7 @@
 		// Player with bombs
 		for(var i=0;i<bombs.length;i++){
 			if(boxCollides(player.pos, player.sprite.size, bombs[i].pos, bombs[i].sprite.size)) {
+				explosion(bombs[i].pos);
 				player.energy-=bombs[i].energy;
 				bombs.splice(i, 1);
 				console.log(player.energy);
@@ -307,6 +315,8 @@
 		ctx.restore();
 	}*/
 
+
+
 	// Items implementation
 	function createItems(coords, array, sprite, energy) {
 		for(var i=0; i<coords.length; i++) {
@@ -383,6 +393,41 @@
 			}
 		}
 	}
+
+	function createEntities(coords, array, sprite, energy) {
+		for(var i=0;i<coords.length;i++){
+			var entity = new Entities ([coords[i][0],coords[i][1]], sprite, energy);
+			array.push(entity);
+		}
+
+	}
+
+	function Entities (pos, sprite, energy, speed, angle){
+		this.pos = pos;
+		this.sprite = sprite;
+		this.energy = energy;
+		this.speed = speed;
+		this.angle = angle;
+		//act:false,
+		//rand:random(0,7),
+		//cicle:0,
+		//hits:0,
+		//last:[enemiesPosition[i][0],enemiesPosition[i][1]]
+	}
+
+	function renderEntities(entities) {
+		for(var i=0; i<entities.length; i++) {
+			ctx.save();
+			ctx.translate(entities[i].pos[0], entities[i].pos[1]);
+			//ctx.rotate(angle);
+			entities[i].sprite.render(ctx);
+			ctx.restore();
+		}
+	}
+
+	console.log(enemies);
+
+
 
 	canvas.addEventListener("mousemove", player.target, false);
 	canvas.addEventListener("mousedown", player.leftClick, false);

@@ -145,10 +145,7 @@
 
 	function render() {
 		clearCanvas();
-		renderItems(boxes);
-		renderItems(energy);
-		renderItems(bombs);
-		renderItems(bullets, true);
+		renderItems([[boxes], [energy], [bombs], [bullets, 1]]);
 		player.render();
 	}
 
@@ -300,15 +297,18 @@
 		this.angle = angle;
 	}
 
-	function renderItems(items, angle) {
+	function renderItems(items) {
 		for(var i=0; i<items.length; i++) {
-			ctx.save();
-			ctx.translate(items[i].pos[0], items[i].pos[1]);
-			if(angle) {
-				ctx.rotate(items[i].angle);
+			for(var j=0; j<items[i][0].length; j++) {
+				ctx.save();
+				ctx.translate(items[i][0][j].pos[0], items[i][0][j].pos[1]);
+				// Rotate angle of item
+				if(items[i][1] == 1) {
+					ctx.rotate(items[i][0][j].angle);
+				}
+				items[i][0][j].sprite.render(ctx);
+				ctx.restore();
 			}
-			items[i].sprite.render(ctx);
-			ctx.restore();
 		}
 	}
 

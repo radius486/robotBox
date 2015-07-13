@@ -402,17 +402,38 @@
 
 	}
 
-	function Entities (pos, sprite, energy, speed, angle){
+	// Entities constructor
+	function Entities (pos, sprite, energy, speed, angle, active){
 		this.pos = pos;
 		this.sprite = sprite;
 		this.energy = energy;
 		this.speed = speed;
 		this.angle = angle;
+		this.active = false;
 		//act:false,
 		//rand:random(0,7),
 		//cicle:0,
 		//hits:0,
 		//last:[enemiesPosition[i][0],enemiesPosition[i][1]]
+		/*if(enemies[i].act==true){
+			ctx.rotate(Math.atan2(player.pos[1]-enemies[i].pos[1]  , player.pos[0]-enemies[i].pos[0]  ) + Math.PI/2);
+		}else if(enemies[i].rand==0){
+			ctx.rotate(Math.PI*3/2);
+		}else if(enemies[i].rand==4){
+			ctx.rotate(Math.PI/2);
+		}else if(enemies[i].rand==2){
+			ctx.rotate(Math.PI*2);
+		}else if(enemies[i].rand==6){
+			ctx.rotate(Math.PI);
+		}else if(enemies[i].rand==3){
+			ctx.rotate(Math.PI/4);
+		}else if(enemies[i].rand==5){
+			ctx.rotate(Math.PI*3/4);
+		}else if(enemies[i].rand==7){
+			ctx.rotate(Math.PI*4/3);
+		}else if(enemies[i].rand==1){
+			ctx.rotate(Math.PI*11/6);
+		}*/
 	}
 
 	function renderEntities(entities) {

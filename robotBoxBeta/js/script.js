@@ -62,6 +62,26 @@
 			player.cursor[0] -= canvas.offsetLeft;
 			player.cursor[1] -= canvas.offsetTop;
 		},
+		leftClick: function(e) {
+		if (e.pageX != undefined && e.pageY != undefined) {
+			player.target[0]= e.pageX;
+			player.target[1] = e.pageY;
+		}
+		else {
+			player.target[0] = e.clientX + document.body.scrollLeft +
+			document.documentElement.scrollLeft;
+			player.target[1] = e.clientY + document.body.scrollTop +
+			document.documentElement.scrollTop;
+		}
+		player.target[0] -= canvas.offsetLeft;
+		player.target[1] -= canvas.offsetTop;
+		console.log('click '+player.target[0]+','+player.target[1]);
+		shoot();
+
+		//console.log(enemies);
+		//console.log(bullets);
+
+	},
 		checkBonds: function() {
 			// Check bonds
 			if(player.pos[0] < player.sprite.size[0]/2) {
@@ -90,6 +110,9 @@
 	// Bombs
 	var bombCords = [[300, 100], [300, 400]];
 	var bombs = [];
+
+	// Bullets
+	var bullets = [];
 
 	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 3);
 	createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [20, 20], 16, [0, 1])), 10);
@@ -122,10 +145,11 @@
 
 	function render() {
 		clearCanvas();
-		player.render();
 		renderItems(boxes);
 		renderItems(energy);
 		renderItems(bombs);
+		renderItems(bullets, true);
+		player.render();
 	}
 
 	function update(dt) {
@@ -133,6 +157,7 @@
 		player.checkBonds();
 		moveWorldF(dt);
 		checkCollisions();
+		updateBullets(dt);
 	};
 
 	function clearCanvas(){
@@ -267,22 +292,60 @@
 	}
 
 	// Object constructor
-	function Items(pos, sprite, energy) {
+	function Items(pos, sprite, energy, speed, angle) {
 		this.pos = pos;
 		this.sprite = sprite;
 		this.energy = energy;
+		this.speed = speed;
+		this.angle = angle;
 	}
 
-	function renderItems(items) {
+	function renderItems(items, angle) {
 		for(var i=0; i<items.length; i++) {
 			ctx.save();
 			ctx.translate(items[i].pos[0], items[i].pos[1]);
+			if(angle) {
+				ctx.rotate(items[i].angle);
+			}
 			items[i].sprite.render(ctx);
 			ctx.restore();
 		}
 	}
 
+	function shoot() {
+		var sprite = new Sprite('images/sprites.png', [0, 39], [18, 8]);
+		var angle = Math.atan2(player.target[1] - player.pos[1], player.target[0] - player.pos[0]);
+		bullets.push(new Items([player.pos[0],player.pos[1]], sprite, 20, 500, angle));
+	}
+
+	function updateBullets(dt){
+		for(var i=0; i<bullets.length; i++) {
+
+			bullets[i].pos[0] += bullets[i].speed * dt*Math.cos(bullets[i].angle);
+			bullets[i].pos[1] += bullets[i].speed * dt*Math.sin(bullets[i].angle);
+
+			if(bullets[i].pos[1] < 0 || bullets[i].pos[1] > canvas.height ||
+			   bullets[i].pos[0] > canvas.width) {
+				bullets.splice(i, 1);
+				i--;
+			}
+		}
+	}
+
+	function updateExplosions(dt){
+		for(var i=0; i<explosions.length; i++) {
+			explosions[i].sprite.update(dt);
+
+			// Remove if animation is done
+			if(explosions[i].sprite.done) {
+				explosions.splice(i, 1);
+				i--;
+			}
+		}
+	}
+
 	canvas.addEventListener("mousemove", player.target, false);
+	canvas.addEventListener("mousedown", player.leftClick, false);
 
 
 })();

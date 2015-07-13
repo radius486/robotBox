@@ -62,6 +62,26 @@
 			player.cursor[0] -= canvas.offsetLeft;
 			player.cursor[1] -= canvas.offsetTop;
 		},
+		leftClick: function(e) {
+		if (e.pageX != undefined && e.pageY != undefined) {
+			player.target[0]= e.pageX;
+			player.target[1] = e.pageY;
+		}
+		else {
+			player.target[0] = e.clientX + document.body.scrollLeft +
+			document.documentElement.scrollLeft;
+			player.target[1] = e.clientY + document.body.scrollTop +
+			document.documentElement.scrollTop;
+		}
+		player.target[0] -= canvas.offsetLeft;
+		player.target[1] -= canvas.offsetTop;
+		//console.log('click '+player.target[0]+','+player.target[1]);
+		shoot();
+
+		//console.log(enemies);
+		//console.log(bullets);
+
+	},
 		checkBonds: function() {
 			// Check bonds
 			if(player.pos[0] < player.sprite.size[0]/2) {
@@ -91,9 +111,21 @@
 	var bombCords = [[300, 100], [300, 400]];
 	var bombs = [];
 
-	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 3);
+	// Bullets
+	var bullets = [];
+
+	// Explosions
+	var explosions = [];
+
+	// Enemies
+	var enemiesCords=[[350,100],[400,100],[450,100]];
+	var enemies=[];
+
+	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 50);
 	createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [20, 20], 16, [0, 1])), 10);
 	createItems(bombCords, bombs, (new Sprite('images/bomb.png', [0, 0], [20, 20], 16, [0, 1])), 40);
+	//createItems(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [36, 56],6, [0, 1, 2, 3, 2, 1])), 100);
+	createEntities(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [36, 56],6, [0, 1, 2, 3, 2, 1])),100);
 
 
 	resources.load([
@@ -122,10 +154,9 @@
 
 	function render() {
 		clearCanvas();
+		renderItems([[boxes], [energy], [bombs], [bullets, 1], [explosions]]);
+		renderEntities(enemies);
 		player.render();
-		renderItems(boxes);
-		renderItems(energy);
-		renderItems(bombs);
 	}
 
 	function update(dt) {
@@ -133,6 +164,8 @@
 		player.checkBonds();
 		moveWorldF(dt);
 		checkCollisions();
+		updateBullets(dt);
+		updateExplosions(dt);
 	};
 
 	function clearCanvas(){
@@ -171,11 +204,35 @@
 		// Player with bombs
 		for(var i=0;i<bombs.length;i++){
 			if(boxCollides(player.pos, player.sprite.size, bombs[i].pos, bombs[i].sprite.size)) {
+				explosion(bombs[i].pos);
 				player.energy-=bombs[i].energy;
 				bombs.splice(i, 1);
 				console.log(player.energy);
 			}
 		}
+
+		// Boxes with bullets
+		for(var i=0;i<boxes.length;i++){
+
+			for(var j=0; j<bullets.length; j++) {
+
+				if(boxCollides(boxes[i].pos, boxes[i].sprite.size, bullets[j].pos, bullets[j].sprite.size)){
+
+					explosion(bullets[j].pos);
+
+					boxes[i].energy-=bullets[j].energy;
+					console.log(boxes[i].energy);
+					if(boxes[i].energy<=0){
+						explosion(boxes[i].pos);
+						boxes.splice(i, 1);
+						i--;
+					}
+					bullets.splice(j, 1);
+					break;
+				}
+			}
+		}
+
 	}
 
 	function moveWorldF(dt) {
@@ -258,6 +315,8 @@
 		ctx.restore();
 	}*/
 
+
+
 	// Items implementation
 	function createItems(coords, array, sprite, energy) {
 		for(var i=0; i<coords.length; i++) {
@@ -267,22 +326,132 @@
 	}
 
 	// Object constructor
-	function Items(pos, sprite, energy) {
+	function Items(pos, sprite, energy, speed, angle) {
 		this.pos = pos;
 		this.sprite = sprite;
 		this.energy = energy;
+		this.speed = speed;
+		this.angle = angle;
 	}
 
 	function renderItems(items) {
 		for(var i=0; i<items.length; i++) {
+			for(var j=0; j<items[i][0].length; j++) {
+				ctx.save();
+				ctx.translate(items[i][0][j].pos[0], items[i][0][j].pos[1]);
+				// Rotate angle of item
+				if(items[i][1] == 1) {
+					ctx.rotate(items[i][0][j].angle);
+				}
+				items[i][0][j].sprite.render(ctx);
+				ctx.restore();
+			}
+		}
+	}
+
+	function shoot() {
+		var sprite = new Sprite('images/sprites.png', [0, 39], [18, 8]);
+		var angle = Math.atan2(player.target[1] - player.pos[1], player.target[0] - player.pos[0]);
+		bullets.push(new Items([player.pos[0],player.pos[1]], sprite, 10, 1000, angle));
+	}
+
+	function explosion(pos){
+		explosions.push({
+			pos: pos,
+			sprite: new Sprite('images/sprites.png',
+				[0, 117],
+				[39, 39],
+				16,
+				[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+				null,
+				true)
+		});
+	}
+
+	function updateBullets(dt){
+		for(var i=0; i<bullets.length; i++) {
+
+			bullets[i].pos[0] += bullets[i].speed * dt*Math.cos(bullets[i].angle);
+			bullets[i].pos[1] += bullets[i].speed * dt*Math.sin(bullets[i].angle);
+
+			if(bullets[i].pos[1] < 0 || bullets[i].pos[1] > canvas.height ||
+			   bullets[i].pos[0] > canvas.width) {
+				bullets.splice(i, 1);
+				i--;
+			}
+		}
+	}
+
+	function updateExplosions(dt){
+		for(var i=0; i<explosions.length; i++) {
+			explosions[i].sprite.update(dt);
+
+			// Remove if animation is done
+			if(explosions[i].sprite.done) {
+				explosions.splice(i, 1);
+				i--;
+			}
+		}
+	}
+
+	function createEntities(coords, array, sprite, energy) {
+		for(var i=0;i<coords.length;i++){
+			var entity = new Entities ([coords[i][0],coords[i][1]], sprite, energy);
+			array.push(entity);
+		}
+
+	}
+
+	// Entities constructor
+	function Entities (pos, sprite, energy, speed, angle, active){
+		this.pos = pos;
+		this.sprite = sprite;
+		this.energy = energy;
+		this.speed = speed;
+		this.angle = angle;
+		this.active = false;
+		//act:false,
+		//rand:random(0,7),
+		//cicle:0,
+		//hits:0,
+		//last:[enemiesPosition[i][0],enemiesPosition[i][1]]
+		/*if(enemies[i].act==true){
+			ctx.rotate(Math.atan2(player.pos[1]-enemies[i].pos[1]  , player.pos[0]-enemies[i].pos[0]  ) + Math.PI/2);
+		}else if(enemies[i].rand==0){
+			ctx.rotate(Math.PI*3/2);
+		}else if(enemies[i].rand==4){
+			ctx.rotate(Math.PI/2);
+		}else if(enemies[i].rand==2){
+			ctx.rotate(Math.PI*2);
+		}else if(enemies[i].rand==6){
+			ctx.rotate(Math.PI);
+		}else if(enemies[i].rand==3){
+			ctx.rotate(Math.PI/4);
+		}else if(enemies[i].rand==5){
+			ctx.rotate(Math.PI*3/4);
+		}else if(enemies[i].rand==7){
+			ctx.rotate(Math.PI*4/3);
+		}else if(enemies[i].rand==1){
+			ctx.rotate(Math.PI*11/6);
+		}*/
+	}
+
+	function renderEntities(entities) {
+		for(var i=0; i<entities.length; i++) {
 			ctx.save();
-			ctx.translate(items[i].pos[0], items[i].pos[1]);
-			items[i].sprite.render(ctx);
+			ctx.translate(entities[i].pos[0], entities[i].pos[1]);
+			//ctx.rotate(angle);
+			entities[i].sprite.render(ctx);
 			ctx.restore();
 		}
 	}
 
+	console.log(enemies);
+
+
+
 	canvas.addEventListener("mousemove", player.target, false);
+	canvas.addEventListener("mousedown", player.leftClick, false);
 
 
 })();

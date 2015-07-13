@@ -124,8 +124,8 @@
 	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 50);
 	createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [20, 20], 16, [0, 1])), 10);
 	createItems(bombCords, bombs, (new Sprite('images/bomb.png', [0, 0], [20, 20], 16, [0, 1])), 40);
-	//createItems(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [36, 56],6, [0, 1, 2, 3, 2, 1])), 100);
-	createEntities(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [36, 56],6, [0, 1, 2, 3, 2, 1])),100);
+	createEntities(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [36, 56],6, [0, 1, 2, 3, 2, 1])), 100, 100);
+	console.log(enemies);
 
 
 	resources.load([
@@ -166,10 +166,15 @@
 		checkCollisions();
 		updateBullets(dt);
 		updateExplosions(dt);
+		updateEnemies(dt);
 	};
 
 	function clearCanvas(){
 		canvas.width = canvas.width;
+	}
+
+	function random(from,to){
+    return Math.floor(Math.random()*(to-from+1))+from;
 	}
 
 	function collides(x, y, r, b, x2, y2, r2, b2) {
@@ -300,23 +305,6 @@
 		}
 	}
 
-
-	/*function renderEntities(list) {
-		for(var i=0; i<list.length; i++) {
-			renderEntity(list[i]);
-		}
-	}
-
-	function renderEntity(entity,angle) {
-		ctx.save();
-		ctx.translate(entity.pos[0], entity.pos[1]);
-		ctx.rotate(angle);
-		entity.sprite.render(ctx);
-		ctx.restore();
-	}*/
-
-
-
 	// Items implementation
 	function createItems(coords, array, sprite, energy) {
 		for(var i=0; i<coords.length; i++) {
@@ -394,61 +382,138 @@
 		}
 	}
 
-	function createEntities(coords, array, sprite, energy) {
+	function createEntities(coords, array, sprite, energy, speed) {
+
+		// Entities constructor
+		function Entities (pos, sprite, energy, speed, active){
+			this.pos = pos;
+			this.sprite = sprite;
+			this.energy = energy;
+			this.speed = speed;
+			this.active = false;
+			this.course = random(0,7);
+			this.angle = this.chooseAngle();
+
+			//act:false,
+			//cicle:0,
+			//hits:0,
+			//last:[enemiesPosition[i][0],enemiesPosition[i][1]]
+		}
+
+		Entities.prototype.chooseAngle = function () {
+			switch(this.course){
+				case 0:
+					return Math.PI*3/2;
+					break;
+				case 1:
+					return Math.PI*11/6;
+					break;
+				case 2:
+					return Math.PI*2;
+					break;
+				case 3:
+					return Math.PI/4;
+					break;
+				case 4:
+					return Math.PI/2;
+					break;
+				case 5:
+					return Math.PI*3/4;
+					break;
+				case 6:
+					return Math.PI;
+					break;
+				case 7:
+					return Math.PI*4/3;
+					break;
+			}
+		}
+
 		for(var i=0;i<coords.length;i++){
-			var entity = new Entities ([coords[i][0],coords[i][1]], sprite, energy);
+			var entity = new Entities ([coords[i][0],coords[i][1]], sprite, energy, speed);
 			array.push(entity);
 		}
 
-	}
-
-	// Entities constructor
-	function Entities (pos, sprite, energy, speed, angle, active){
-		this.pos = pos;
-		this.sprite = sprite;
-		this.energy = energy;
-		this.speed = speed;
-		this.angle = angle;
-		this.active = false;
-		//act:false,
-		//rand:random(0,7),
-		//cicle:0,
-		//hits:0,
-		//last:[enemiesPosition[i][0],enemiesPosition[i][1]]
-		/*if(enemies[i].act==true){
-			ctx.rotate(Math.atan2(player.pos[1]-enemies[i].pos[1]  , player.pos[0]-enemies[i].pos[0]  ) + Math.PI/2);
-		}else if(enemies[i].rand==0){
-			ctx.rotate(Math.PI*3/2);
-		}else if(enemies[i].rand==4){
-			ctx.rotate(Math.PI/2);
-		}else if(enemies[i].rand==2){
-			ctx.rotate(Math.PI*2);
-		}else if(enemies[i].rand==6){
-			ctx.rotate(Math.PI);
-		}else if(enemies[i].rand==3){
-			ctx.rotate(Math.PI/4);
-		}else if(enemies[i].rand==5){
-			ctx.rotate(Math.PI*3/4);
-		}else if(enemies[i].rand==7){
-			ctx.rotate(Math.PI*4/3);
-		}else if(enemies[i].rand==1){
-			ctx.rotate(Math.PI*11/6);
-		}*/
 	}
 
 	function renderEntities(entities) {
 		for(var i=0; i<entities.length; i++) {
 			ctx.save();
 			ctx.translate(entities[i].pos[0], entities[i].pos[1]);
-			//ctx.rotate(angle);
+			ctx.rotate(entities[i].angle);
 			entities[i].sprite.render(ctx);
 			ctx.restore();
 		}
 	}
 
-	console.log(enemies);
+	function updateEnemies(dt){
+			for(var i=0;i<enemies.length;i++){
 
+				switch(enemies[i].course) {
+					case 0:
+						enemies[i].pos[0]-=enemies[i].speed*dt;
+						break;
+					case 1:
+						enemies[i].pos[0]-=enemies[i].speed*dt;
+						enemies[i].pos[1]-=enemies[i].speed*dt;
+						break;
+					case 2:
+						enemies[i].pos[1]-=enemies[i].speed*dt;
+						break;
+					case 3:
+						enemies[i].pos[0]+=enemies[i].speed*dt;
+						enemies[i].pos[1]-=enemies[i].speed*dt;
+						break;
+					case 4:
+						enemies[i].pos[0]+=enemies[i].speed*dt;
+						break;
+					case 5:
+						enemies[i].pos[0]+=enemies[i].speed*dt;
+						enemies[i].pos[1]+=enemies[i].speed*dt;
+						break;
+					case 6:
+						enemies[i].pos[1]+=enemies[i].speed*dt;
+						break;
+					case 7:
+						enemies[i].pos[0]-=enemies[i].speed*dt;
+						enemies[i].pos[1]+=enemies[i].speed*dt;
+						break;
+				}
 
+				/*enemies[i].last=[enemies[i].pos[0],enemies[i].pos[1]];
+
+				enemies[i].cicle+=1;
+				if(enemies[i].cicle==100){
+					enemies[i].rand = random(0,7);
+					enemies[i].cicle=0;
+				}
+				if(enemies[i].act==false){
+					if(enemies[i].rand==0){
+						enemies[i].pos[0]-=enemiesSpeed*dt/2;
+					}else if(enemies[i].rand==4){
+						enemies[i].pos[0]+=enemiesSpeed*dt/2;
+					}else if(enemies[i].rand==2){
+						enemies[i].pos[1]-=enemiesSpeed*dt/2;
+					}else if(enemies[i].rand==6){
+						enemies[i].pos[1]+=enemiesSpeed*dt/2;
+					}else if(enemies[i].rand==3){
+						enemies[i].pos[0]+=enemiesSpeed*dt/2;
+						enemies[i].pos[1]-=enemiesSpeed*dt/2;
+					}else if(enemies[i].rand==5){
+						enemies[i].pos[0]+=enemiesSpeed*dt/2;
+						enemies[i].pos[1]+=enemiesSpeed*dt/2;
+					}else if(enemies[i].rand==7){
+						enemies[i].pos[0]-=enemiesSpeed*dt/2;
+						enemies[i].pos[1]+=enemiesSpeed*dt/2;
+					}else if(enemies[i].rand==1){
+						enemies[i].pos[0]-=enemiesSpeed*dt/2;
+						enemies[i].pos[1]-=enemiesSpeed*dt/2;
+					}
+				}*/
+
+			}
+
+	}
 
 	canvas.addEventListener("mousemove", player.target, false);
 	canvas.addEventListener("mousedown", player.leftClick, false);

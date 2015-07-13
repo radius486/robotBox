@@ -75,7 +75,7 @@
 		}
 		player.target[0] -= canvas.offsetLeft;
 		player.target[1] -= canvas.offsetTop;
-		console.log('click '+player.target[0]+','+player.target[1]);
+		//console.log('click '+player.target[0]+','+player.target[1]);
 		shoot();
 
 		//console.log(enemies);
@@ -117,7 +117,7 @@
 	// Explosions
 	var explosions = [];
 
-	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 3);
+	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 50);
 	createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [20, 20], 16, [0, 1])), 10);
 	createItems(bombCords, bombs, (new Sprite('images/bomb.png', [0, 0], [20, 20], 16, [0, 1])), 40);
 
@@ -205,19 +205,16 @@
 
 		// Boxes with bullets
 		for(var i=0;i<boxes.length;i++){
-				var pos5 = boxes[i].pos;
-				var size5 = boxes[i].sprite.size;
 
 			for(var j=0; j<bullets.length; j++) {
-				var pos6 = bullets[j].pos;
-				var size6 = bullets[j].sprite.size;
 
-				if(boxCollides(pos5, size5, pos6, size6)){
+				if(boxCollides(boxes[i].pos, boxes[i].sprite.size, bullets[j].pos, bullets[j].sprite.size)){
 
-					explosion(pos5);
+					explosion(boxes[i].pos);
 
-					boxes[i].energy-=1;
-					if(boxes[i].energy<0){
+					boxes[i].energy-=bullets[j].energy;
+					console.log(boxes[i].energy);
+					if(boxes[i].energy<=0){
 						boxes.splice(i, 1);
 						i--;
 					}
@@ -344,7 +341,7 @@
 	function shoot() {
 		var sprite = new Sprite('images/sprites.png', [0, 39], [18, 8]);
 		var angle = Math.atan2(player.target[1] - player.pos[1], player.target[0] - player.pos[0]);
-		bullets.push(new Items([player.pos[0],player.pos[1]], sprite, 20, 500, angle));
+		bullets.push(new Items([player.pos[0],player.pos[1]], sprite, 10, 1000, angle));
 	}
 
 	function explosion(pos){

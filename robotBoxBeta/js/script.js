@@ -114,6 +114,9 @@
 	// Bullets
 	var bullets = [];
 
+	// Explosions
+	var explosions = [];
+
 	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 3);
 	createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [20, 20], 16, [0, 1])), 10);
 	createItems(bombCords, bombs, (new Sprite('images/bomb.png', [0, 0], [20, 20], 16, [0, 1])), 40);
@@ -145,7 +148,7 @@
 
 	function render() {
 		clearCanvas();
-		renderItems([[boxes], [energy], [bombs], [bullets, 1]]);
+		renderItems([[boxes], [energy], [bombs], [bullets, 1], [explosions]]);
 		player.render();
 	}
 
@@ -155,6 +158,7 @@
 		moveWorldF(dt);
 		checkCollisions();
 		updateBullets(dt);
+		updateExplosions(dt);
 	};
 
 	function clearCanvas(){
@@ -198,6 +202,31 @@
 				console.log(player.energy);
 			}
 		}
+
+		// Boxes with bullets
+		for(var i=0;i<boxes.length;i++){
+				var pos5 = boxes[i].pos;
+				var size5 = boxes[i].sprite.size;
+
+			for(var j=0; j<bullets.length; j++) {
+				var pos6 = bullets[j].pos;
+				var size6 = bullets[j].sprite.size;
+
+				if(boxCollides(pos5, size5, pos6, size6)){
+
+					explosion(pos5);
+
+					boxes[i].energy-=1;
+					if(boxes[i].energy<0){
+						boxes.splice(i, 1);
+						i--;
+					}
+					bullets.splice(j, 1);
+					break;
+				}
+			}
+		}
+
 	}
 
 	function moveWorldF(dt) {
@@ -316,6 +345,19 @@
 		var sprite = new Sprite('images/sprites.png', [0, 39], [18, 8]);
 		var angle = Math.atan2(player.target[1] - player.pos[1], player.target[0] - player.pos[0]);
 		bullets.push(new Items([player.pos[0],player.pos[1]], sprite, 20, 500, angle));
+	}
+
+	function explosion(pos){
+		explosions.push({
+			pos: pos,
+			sprite: new Sprite('images/sprites.png',
+				[0, 117],
+				[39, 39],
+				16,
+				[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+				null,
+				true)
+		});
 	}
 
 	function updateBullets(dt){

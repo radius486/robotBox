@@ -210,11 +210,12 @@
 
 				if(boxCollides(boxes[i].pos, boxes[i].sprite.size, bullets[j].pos, bullets[j].sprite.size)){
 
-					explosion(boxes[i].pos);
+					explosion(bullets[j].pos);
 
 					boxes[i].energy-=bullets[j].energy;
 					console.log(boxes[i].energy);
 					if(boxes[i].energy<=0){
+						explosion(boxes[i].pos);
 						boxes.splice(i, 1);
 						i--;
 					}

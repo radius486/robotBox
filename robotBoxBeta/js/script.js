@@ -225,6 +225,22 @@
 				}
 			}*/
 
+			// Enemies with boxes
+			for(var j=0; j < boxes.length; j++){
+				if(boxCollides(enemies[i].pos, enemies[i].sprite.size, boxes[j].pos, boxes[j].sprite.size)){
+						enemies[i].pos = enemies[i].lastPosition;
+						enemies[i].course = random(0,7);
+						enemies[i].angle = enemies[i].chooseAngle();
+				}
+			}
+
+			// Enemies with player
+			if(boxCollides(player.pos, player.sprite.size, enemies[i].pos, enemies[i].sprite.size)){
+				enemies[i].pos = enemies[i].lastPosition;
+				player.energy -= 1;
+				console.log('player energy = ' + player.energy);
+			}
+
 			// Enemies with bullets
 			for(var j=0; j<bullets.length; j++) {
 
@@ -242,22 +258,6 @@
 					bullets.splice(j, 1);
 					break;
 				}
-			}
-
-			// Enemies with boxes
-			for(var j=0; j < boxes.length; j++){
-				if(boxCollides(enemies[i].pos, enemies[i].sprite.size, boxes[j].pos, boxes[j].sprite.size)){
-						enemies[i].pos = enemies[i].lastPosition;
-						enemies[i].course = random(0,7);
-						enemies[i].angle = enemies[i].chooseAngle();
-				}
-			}
-
-			// Enemies with player
-			if(boxCollides(player.pos, player.sprite.size, enemies[i].pos, enemies[i].sprite.size)){
-				enemies[i].pos = enemies[i].lastPosition;
-				player.energy -= 1;
-				console.log('player energy = ' + player.energy);
 			}
 
 		}

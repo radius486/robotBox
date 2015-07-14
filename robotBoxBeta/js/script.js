@@ -133,6 +133,7 @@
 
 	function update(dt) {
 		player.move(dt);
+		//player.sprite.update(dt);
 		player.checkBonds();
 		moveWorldF(dt);
 		checkCollisions();
@@ -420,6 +421,7 @@
 	        entities[i].cicle = 0;
 	      }
 	      if(!entities[i].active) {
+	      	//entities[i].sprite.update(dt);
 		      switch(entities[i].course) {
 		        case 0:
 		          entities[i].pos[0] -= entities[i].speed*dt;

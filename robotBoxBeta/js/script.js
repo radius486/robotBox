@@ -387,16 +387,15 @@
 		// Entities constructor
 		function Entities (pos, sprite, energy, speed, active){
 			this.pos = pos;
+			this.lastPosition = pos;
 			this.sprite = sprite;
 			this.energy = energy;
 			this.speed = speed;
 			this.active = false;
 			this.course = random(0,7);
+			this.cicle = 0;
+			this.endCicle = random(1,100);
 			this.angle = this.chooseAngle();
-
-			//act:false,
-			//cicle:0,
-			//hits:0,
 			//last:[enemiesPosition[i][0],enemiesPosition[i][1]]
 		}
 
@@ -448,6 +447,16 @@
 
 	function updateEnemies(dt){
 			for(var i=0;i<enemies.length;i++){
+
+				enemies[i].lastPosition = [enemies[i].pos[0],enemies[i].pos[1]];
+
+				enemies[i].cicle+=1;
+				if(enemies[i].cicle == enemies[i].endCicle){
+					enemies[i].course = random(0,7);
+					enemies[i].angle = enemies[i].chooseAngle();
+					enemies[i].cicle = 0;
+					enemies[i].endCicle = random(1,100);
+				}
 
 				switch(enemies[i].course) {
 					case 0:

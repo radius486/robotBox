@@ -124,8 +124,7 @@
 	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 50);
 	createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [20, 20], 16, [0, 1])), 10);
 	createItems(bombCords, bombs, (new Sprite('images/bomb.png', [0, 0], [20, 20], 16, [0, 1])), 40);
-	createEntities(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [36, 56],6, [0, 1, 2, 3, 2, 1])), 100, 100);
-	console.log(enemies);
+	createEntities(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [36, 56],6, [0, 1, 2, 3, 2, 1])), 30, 50);
 
 
 	resources.load([
@@ -154,8 +153,8 @@
 
 	function render() {
 		clearCanvas();
-		renderItems([[boxes], [energy], [bombs], [bullets, 1], [explosions]]);
 		renderEntities(enemies);
+		renderItems([[boxes], [energy], [bombs], [bullets, 1], [explosions]]);
 		player.render();
 	}
 
@@ -165,8 +164,8 @@
 		moveWorldF(dt);
 		checkCollisions();
 		updateBullets(dt);
+		updateEntities(dt, enemies);
 		updateExplosions(dt);
-		updateEnemies(dt);
 	};
 
 	function clearCanvas(){
@@ -202,7 +201,7 @@
 			if(boxCollides(player.pos, player.sprite.size, energy[i].pos, energy[i].sprite.size)) {
 				player.energy+=energy[i].energy;
 				energy.splice(i, 1);
-				console.log(player.energy);
+				console.log('player energy = '+ player.energy);
 			}
 		}
 
@@ -212,7 +211,7 @@
 				explosion(bombs[i].pos);
 				player.energy-=bombs[i].energy;
 				bombs.splice(i, 1);
-				console.log(player.energy);
+				console.log('player energy = '+ player.energy);
 			}
 		}
 
@@ -225,9 +224,9 @@
 
 					explosion(bullets[j].pos);
 
-					boxes[i].energy-=bullets[j].energy;
-					console.log(boxes[i].energy);
-					if(boxes[i].energy<=0){
+					boxes[i].energy -= bullets[j].energy;
+					console.log('box energy  = '+ boxes[i].energy);
+					if(boxes[i].energy <= 0){
 						explosion(boxes[i].pos);
 						boxes.splice(i, 1);
 						i--;
@@ -267,29 +266,30 @@
 						enemies[i].course = random(0,7);
 						enemies[j].course = random(0,7);
 						enemies[i].angle = enemies[i].chooseAngle();
-						enemies[j].angle = enemies[i].chooseAngle();
+						enemies[j].angle = enemies[j].chooseAngle();
 
 					}
 				}
 			}
+
 			//enemies with bullets
-			/*for(var j=0; j<bullets.length; j++) {
-				var pos2 = bullets[j].pos;
-				var size2 = bullets[j].sprite.size;
+			for(var j=0; j<bullets.length; j++) {
 
-				if(boxCollides(pos, size, pos2, size2)) {
+				if(boxCollides(enemies[i].pos, bullets[j].sprite.size, bullets[j].pos, bullets[j].sprite.size)) {
 
-					explosion(pos);
+					explosion(bullets[j].pos);
 
-					enemies[i].hits+=1;
-					if(enemies[i].hits==3){
+					enemies[i].energy -= bullets[j].energy;
+					console.log('enemie energy = '+ enemies[i].energy);
+					if(enemies[i].energy <= 0){
+						explosion(enemies[i].pos);
 						enemies.splice(i, 1);
 						i--;
 					}
 					bullets.splice(j, 1);
 					break;
 				}
-			}*/
+			}
 
 			//enemies with boxes
 			for(var j=0; j < boxes.length; j++){
@@ -512,52 +512,50 @@
 		}
 	}
 
-	function updateEnemies(dt){
-			for(var i=0;i<enemies.length;i++){
+	function updateEntities(dt, entities){
+    for(var i=0;i<entities.length;i++){
 
-				enemies[i].lastPosition = [enemies[i].pos[0],enemies[i].pos[1]];
+      entities[i].lastPosition = [entities[i].pos[0],entities[i].pos[1]];
 
-				enemies[i].cicle += 1;
-				if(enemies[i].cicle == enemies[i].endCicle){
-					enemies[i].course = random(0,7);
-					enemies[i].angle = enemies[i].chooseAngle();
-					enemies[i].cicle = 0;
-				}
+      entities[i].cicle += 1;
+      if(entities[i].cicle == entities[i].endCicle){
+        entities[i].course = random(0,7);
+        entities[i].angle = entities[i].chooseAngle();
+        entities[i].cicle = 0;
+      }
 
-				switch(enemies[i].course) {
-					case 0:
-						enemies[i].pos[0]-=enemies[i].speed*dt;
-						break;
-					case 1:
-						enemies[i].pos[0]-=enemies[i].speed*dt;
-						enemies[i].pos[1]-=enemies[i].speed*dt;
-						break;
-					case 2:
-						enemies[i].pos[1]-=enemies[i].speed*dt;
-						break;
-					case 3:
-						enemies[i].pos[0]+=enemies[i].speed*dt;
-						enemies[i].pos[1]-=enemies[i].speed*dt;
-						break;
-					case 4:
-						enemies[i].pos[0]+=enemies[i].speed*dt;
-						break;
-					case 5:
-						enemies[i].pos[0]+=enemies[i].speed*dt;
-						enemies[i].pos[1]+=enemies[i].speed*dt;
-						break;
-					case 6:
-						enemies[i].pos[1]+=enemies[i].speed*dt;
-						break;
-					case 7:
-						enemies[i].pos[0]-=enemies[i].speed*dt;
-						enemies[i].pos[1]+=enemies[i].speed*dt;
-						break;
-				}
-
-			}
-
-	}
+      switch(entities[i].course) {
+        case 0:
+          entities[i].pos[0] -= entities[i].speed*dt;
+          break;
+        case 1:
+          entities[i].pos[0] -= entities[i].speed*dt;
+          entities[i].pos[1] -= entities[i].speed*dt;
+          break;
+        case 2:
+          entities[i].pos[1] -= entities[i].speed*dt;
+          break;
+        case 3:
+          entities[i].pos[0] += entities[i].speed*dt;
+          entities[i].pos[1] -= entities[i].speed*dt;
+          break;
+        case 4:
+          entities[i].pos[0] += entities[i].speed*dt;
+          break;
+        case 5:
+          entities[i].pos[0] += entities[i].speed*dt;
+          entities[i].pos[1] += entities[i].speed*dt;
+          break;
+        case 6:
+          entities[i].pos[1] += entities[i].speed*dt;
+          break;
+        case 7:
+          entities[i].pos[0] -= entities[i].speed*dt;
+          entities[i].pos[1] += entities[i].speed*dt;
+          break;
+      }
+    }
+  }
 
 	canvas.addEventListener("mousemove", player.target, false);
 	canvas.addEventListener("mousedown", player.leftClick, false);

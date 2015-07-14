@@ -173,10 +173,6 @@
 		canvas.width = canvas.width;
 	}
 
-	function random(from,to){
-    return Math.floor(Math.random()*(to-from+1))+from;
-	}
-
 	function collides(x, y, r, b, x2, y2, r2, b2) {
 		return !(r <= x2 || x > r2 ||
 					 b <= y2 || y > b2);
@@ -363,23 +359,6 @@
 		}
 	}
 
-	// Items implementation
-	function createItems(coords, array, sprite, energy) {
-		for(var i=0; i<coords.length; i++) {
-			var item = new Items([coords[i][0], coords[i][1]], sprite, energy);
-			array.push(item);
-		}
-	}
-
-	// Object constructor
-	function Items(pos, sprite, energy, speed, angle) {
-		this.pos = pos;
-		this.sprite = sprite;
-		this.energy = energy;
-		this.speed = speed;
-		this.angle = angle;
-	}
-
 	function renderItems(items) {
 		for(var i=0; i<items.length; i++) {
 			for(var j=0; j<items[i][0].length; j++) {
@@ -438,58 +417,6 @@
 				i--;
 			}
 		}
-	}
-
-	function createEntities(coords, array, sprite, energy, speed) {
-
-		// Entities constructor
-		function Entities (pos, sprite, energy, speed, active){
-			this.pos = pos;
-			this.lastPosition = pos;
-			this.sprite = sprite;
-			this.energy = energy;
-			this.speed = speed;
-			this.active = false;
-			this.course = random(0,7);
-			this.cicle = 0;
-			this.endCicle = random(50,100);
-			this.angle = this.chooseAngle();
-		}
-
-		Entities.prototype.chooseAngle = function () {
-			switch(this.course){
-				case 0:
-					return Math.PI*3/2;
-					break;
-				case 1:
-					return Math.PI*11/6;
-					break;
-				case 2:
-					return Math.PI*2;
-					break;
-				case 3:
-					return Math.PI/4;
-					break;
-				case 4:
-					return Math.PI/2;
-					break;
-				case 5:
-					return Math.PI*3/4;
-					break;
-				case 6:
-					return Math.PI;
-					break;
-				case 7:
-					return Math.PI*4/3;
-					break;
-			}
-		}
-
-		for(var i=0;i<coords.length;i++){
-			var entity = new Entities ([coords[i][0],coords[i][1]], sprite, energy, speed);
-			array.push(entity);
-		}
-
 	}
 
 	function renderEntities(entities) {

@@ -118,7 +118,7 @@
 	var explosions = [];
 
 	// Enemies
-	var enemiesCords=[[350,100],[400,100],[450,100]];
+	var enemiesCords=[[350,100],[400,200],[450,100],[100, 200], [200, 300], [300, 400], [200, 400], [400, 300], [300, 500], [100, 500], [600, 400], [400, 500]];
 	var enemies=[];
 
 	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 50);
@@ -238,6 +238,70 @@
 			}
 		}
 
+		//Enemies
+		for(var i=0; i<enemies.length; i++) {
+
+				//canvas
+				/*if(enemies[i].pos[0] < 0) {
+					enemies[i].rand=4;
+				}
+				else if(enemies[i].pos[0] > canvas.width - enemies[i].sprite.size[0]) {
+					enemies[i].rand=0;
+				}
+
+				if(enemies[i].pos[1] < 0) {
+					enemies[i].rand=6;
+				}
+				else if(enemies[i].pos[1] > canvas.height - enemies[i].sprite.size[1]) {
+					enemies[i].rand=2;
+				}*/
+				//-------------------------------
+			var pos = enemies[i].pos;
+			var size = enemies[i].sprite.size;
+			//enemy with enemy
+			for(var j=0;j<enemies.length;j++){
+				if(enemies[i].pos!=enemies[j].pos){
+					if(boxCollides(enemies[i].pos, enemies[i].sprite.size, enemies[j].pos, enemies[j].sprite.size)){
+						enemies[i].pos = enemies[i].lastPosition;
+						enemies[j].pos = enemies[j].lastPosition;
+						enemies[i].course = random(0,7);
+						enemies[j].course = random(0,7);
+						enemies[i].angle = enemies[i].chooseAngle();
+						enemies[j].angle = enemies[i].chooseAngle();
+
+					}
+				}
+			}
+			//enemies with bullets
+			/*for(var j=0; j<bullets.length; j++) {
+				var pos2 = bullets[j].pos;
+				var size2 = bullets[j].sprite.size;
+
+				if(boxCollides(pos, size, pos2, size2)) {
+
+					explosion(pos);
+
+					enemies[i].hits+=1;
+					if(enemies[i].hits==3){
+						enemies.splice(i, 1);
+						i--;
+					}
+					bullets.splice(j, 1);
+					break;
+				}
+			}*/
+
+			//enemies with boxes
+			for(var j=0; j < boxes.length; j++){
+				if(boxCollides(enemies[i].pos, enemies[i].sprite.size, boxes[j].pos, boxes[j].sprite.size)){
+						enemies[i].pos = enemies[i].lastPosition;
+						enemies[i].course = random(0,7);
+						enemies[i].angle = enemies[i].chooseAngle();
+				}
+			}
+
+		}
+
 	}
 
 	function moveWorldF(dt) {
@@ -251,6 +315,7 @@
 				changePosition(boxes, worldSpeed* dt, 1);
 				changePosition(energy, worldSpeed* dt, 1);
 				changePosition(bombs, worldSpeed* dt, 1);
+				changePosition(enemies, worldSpeed* dt, 1);
 				if(player.pos[0] > canvas.width/2) {
 					moveWorld = 0;
 				}
@@ -260,6 +325,7 @@
 				changePosition(boxes, worldSpeed* dt, 2);
 				changePosition(energy, worldSpeed* dt, 2);
 				changePosition(bombs, worldSpeed* dt, 2);
+				changePosition(enemies, worldSpeed* dt, 2);
 				if(player.pos[0] < canvas.width/2) {
 					moveWorld = 0;
 				}
@@ -269,6 +335,7 @@
 				changePosition(boxes, worldSpeed* dt, 3);
 				changePosition(energy, worldSpeed* dt, 3);
 				changePosition(bombs, worldSpeed* dt, 3);
+				changePosition(enemies, worldSpeed* dt, 3);
 				if(player.pos[1] > canvas.height/2) {
 					moveWorld = 0;
 				}
@@ -278,6 +345,7 @@
 				changePosition(boxes, worldSpeed* dt, 4);
 				changePosition(energy, worldSpeed* dt, 4);
 				changePosition(bombs, worldSpeed* dt, 4);
+				changePosition(enemies, worldSpeed* dt, 4);
 				if(player.pos[1] < canvas.height/2) {
 					moveWorld = 0;
 				}
@@ -394,9 +462,8 @@
 			this.active = false;
 			this.course = random(0,7);
 			this.cicle = 0;
-			this.endCicle = random(1,100);
+			this.endCicle = random(50,100);
 			this.angle = this.chooseAngle();
-			//last:[enemiesPosition[i][0],enemiesPosition[i][1]]
 		}
 
 		Entities.prototype.chooseAngle = function () {
@@ -450,12 +517,11 @@
 
 				enemies[i].lastPosition = [enemies[i].pos[0],enemies[i].pos[1]];
 
-				enemies[i].cicle+=1;
+				enemies[i].cicle += 1;
 				if(enemies[i].cicle == enemies[i].endCicle){
 					enemies[i].course = random(0,7);
 					enemies[i].angle = enemies[i].chooseAngle();
 					enemies[i].cicle = 0;
-					enemies[i].endCicle = random(1,100);
 				}
 
 				switch(enemies[i].course) {
@@ -488,37 +554,6 @@
 						enemies[i].pos[1]+=enemies[i].speed*dt;
 						break;
 				}
-
-				/*enemies[i].last=[enemies[i].pos[0],enemies[i].pos[1]];
-
-				enemies[i].cicle+=1;
-				if(enemies[i].cicle==100){
-					enemies[i].rand = random(0,7);
-					enemies[i].cicle=0;
-				}
-				if(enemies[i].act==false){
-					if(enemies[i].rand==0){
-						enemies[i].pos[0]-=enemiesSpeed*dt/2;
-					}else if(enemies[i].rand==4){
-						enemies[i].pos[0]+=enemiesSpeed*dt/2;
-					}else if(enemies[i].rand==2){
-						enemies[i].pos[1]-=enemiesSpeed*dt/2;
-					}else if(enemies[i].rand==6){
-						enemies[i].pos[1]+=enemiesSpeed*dt/2;
-					}else if(enemies[i].rand==3){
-						enemies[i].pos[0]+=enemiesSpeed*dt/2;
-						enemies[i].pos[1]-=enemiesSpeed*dt/2;
-					}else if(enemies[i].rand==5){
-						enemies[i].pos[0]+=enemiesSpeed*dt/2;
-						enemies[i].pos[1]+=enemiesSpeed*dt/2;
-					}else if(enemies[i].rand==7){
-						enemies[i].pos[0]-=enemiesSpeed*dt/2;
-						enemies[i].pos[1]+=enemiesSpeed*dt/2;
-					}else if(enemies[i].rand==1){
-						enemies[i].pos[0]-=enemiesSpeed*dt/2;
-						enemies[i].pos[1]-=enemiesSpeed*dt/2;
-					}
-				}*/
 
 			}
 

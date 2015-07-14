@@ -13,6 +13,7 @@
 
 	var moveWorld = 0;
 	var worldSpeed = 300;
+	var triggerDistance = 200;
 
 	var lastTime;
 	var canvas = document.getElementById("b");
@@ -240,25 +241,9 @@
 		//Enemies
 		for(var i=0; i<enemies.length; i++) {
 
-				//canvas
-				/*if(enemies[i].pos[0] < 0) {
-					enemies[i].rand=4;
-				}
-				else if(enemies[i].pos[0] > canvas.width - enemies[i].sprite.size[0]) {
-					enemies[i].rand=0;
-				}
+			// Enemy with enemy
 
-				if(enemies[i].pos[1] < 0) {
-					enemies[i].rand=6;
-				}
-				else if(enemies[i].pos[1] > canvas.height - enemies[i].sprite.size[1]) {
-					enemies[i].rand=2;
-				}*/
-				//-------------------------------
-			var pos = enemies[i].pos;
-			var size = enemies[i].sprite.size;
-			//enemy with enemy
-			for(var j=0;j<enemies.length;j++){
+			/*for(var j=0;j<enemies.length;j++){
 				if(enemies[i].pos!=enemies[j].pos){
 					if(boxCollides(enemies[i].pos, enemies[i].sprite.size, enemies[j].pos, enemies[j].sprite.size)){
 						enemies[i].pos = enemies[i].lastPosition;
@@ -270,9 +255,9 @@
 
 					}
 				}
-			}
+			}*/
 
-			//enemies with bullets
+			// Enemies with bullets
 			for(var j=0; j<bullets.length; j++) {
 
 				if(boxCollides(enemies[i].pos, bullets[j].sprite.size, bullets[j].pos, bullets[j].sprite.size)) {
@@ -291,13 +276,18 @@
 				}
 			}
 
-			//enemies with boxes
+			// Enemies with boxes
 			for(var j=0; j < boxes.length; j++){
 				if(boxCollides(enemies[i].pos, enemies[i].sprite.size, boxes[j].pos, boxes[j].sprite.size)){
 						enemies[i].pos = enemies[i].lastPosition;
 						enemies[i].course = random(0,7);
 						enemies[i].angle = enemies[i].chooseAngle();
 				}
+			}
+
+			// Enemies with player
+			if(boxCollides(player.pos, player.sprite.size, enemies[i].pos, enemies[i].sprite.size)){
+				enemies[i].pos = enemies[i].lastPosition;
 			}
 
 		}
@@ -506,55 +496,85 @@
 		for(var i=0; i<entities.length; i++) {
 			ctx.save();
 			ctx.translate(entities[i].pos[0], entities[i].pos[1]);
-			ctx.rotate(entities[i].angle);
+			if(entities[i].active){
+				ctx.rotate(Math.atan2(player.pos[1]-entities[i].pos[1]  , player.pos[0]-entities[i].pos[0]  ) + Math.PI/2);
+			}else{
+				ctx.rotate(entities[i].angle);
+			}
 			entities[i].sprite.render(ctx);
 			ctx.restore();
 		}
 	}
 
 	function updateEntities(dt, entities){
-    for(var i=0;i<entities.length;i++){
+		if(moveWorld == 0 ) {
+	    for(var i=0;i<entities.length;i++){
 
-      entities[i].lastPosition = [entities[i].pos[0],entities[i].pos[1]];
+	      entities[i].lastPosition = [entities[i].pos[0],entities[i].pos[1]];
 
-      entities[i].cicle += 1;
-      if(entities[i].cicle == entities[i].endCicle){
-        entities[i].course = random(0,7);
-        entities[i].angle = entities[i].chooseAngle();
-        entities[i].cicle = 0;
-      }
+	      entities[i].cicle += 1;
+	      if(entities[i].cicle == entities[i].endCicle){
+	        entities[i].course = random(0,7);
+	        entities[i].angle = entities[i].chooseAngle();
+	        entities[i].cicle = 0;
+	      }
+	      if(!entities[i].active) {
+		      switch(entities[i].course) {
+		        case 0:
+		          entities[i].pos[0] -= entities[i].speed*dt;
+		          break;
+		        case 1:
+		          entities[i].pos[0] -= entities[i].speed*dt;
+		          entities[i].pos[1] -= entities[i].speed*dt;
+		          break;
+		        case 2:
+		          entities[i].pos[1] -= entities[i].speed*dt;
+		          break;
+		        case 3:
+		          entities[i].pos[0] += entities[i].speed*dt;
+		          entities[i].pos[1] -= entities[i].speed*dt;
+		          break;
+		        case 4:
+		          entities[i].pos[0] += entities[i].speed*dt;
+		          break;
+		        case 5:
+		          entities[i].pos[0] += entities[i].speed*dt;
+		          entities[i].pos[1] += entities[i].speed*dt;
+		          break;
+		        case 6:
+		          entities[i].pos[1] += entities[i].speed*dt;
+		          break;
+		        case 7:
+		          entities[i].pos[0] -= entities[i].speed*dt;
+		          entities[i].pos[1] += entities[i].speed*dt;
+		          break;
+		      }
 
-      switch(entities[i].course) {
-        case 0:
-          entities[i].pos[0] -= entities[i].speed*dt;
-          break;
-        case 1:
-          entities[i].pos[0] -= entities[i].speed*dt;
-          entities[i].pos[1] -= entities[i].speed*dt;
-          break;
-        case 2:
-          entities[i].pos[1] -= entities[i].speed*dt;
-          break;
-        case 3:
-          entities[i].pos[0] += entities[i].speed*dt;
-          entities[i].pos[1] -= entities[i].speed*dt;
-          break;
-        case 4:
-          entities[i].pos[0] += entities[i].speed*dt;
-          break;
-        case 5:
-          entities[i].pos[0] += entities[i].speed*dt;
-          entities[i].pos[1] += entities[i].speed*dt;
-          break;
-        case 6:
-          entities[i].pos[1] += entities[i].speed*dt;
-          break;
-        case 7:
-          entities[i].pos[0] -= entities[i].speed*dt;
-          entities[i].pos[1] += entities[i].speed*dt;
-          break;
-      }
-    }
+	      }
+
+	      // Trigger
+        if((player.pos[0]>entities[i].pos[0]-triggerDistance&&player.pos[0]<entities[i].pos[0]+triggerDistance)&&(player.pos[1]>entities[i].pos[1]-triggerDistance&&player.pos[1]<entities[i].pos[1]+triggerDistance)){
+
+          entities[i].active = true;
+
+          if(player.pos[0]>entities[i].pos[0]){
+            entities[i].pos[0] += entities[i].speed * dt * 2;
+          }else if(player.pos[0]<entities[i].pos[0]){
+            entities[i].pos[0] -= entities[i].speed * dt * 2;
+          }
+          if(player.pos[1]>entities[i].pos[1]){
+          	entities[i].pos[1] += entities[i].speed * dt * 2;
+          }else if(player.pos[1]<entities[i].pos[1]){
+          	entities[i].pos[1] -= entities[i].speed * dt * 2;
+          }
+
+        }else{
+          entities[i].active = false;
+        }
+
+
+	    }
+	  }
   }
 
 	canvas.addEventListener("mousemove", player.target, false);

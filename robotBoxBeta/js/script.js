@@ -337,14 +337,16 @@
 	function renderItems(items) {
 		for(var i=0; i<items.length; i++) {
 			for(var j=0; j<items[i][0].length; j++) {
-				ctx.save();
-				ctx.translate(items[i][0][j].pos[0], items[i][0][j].pos[1]);
-				// Rotate angle of item
-				if(items[i][1] == 1) {
-					ctx.rotate(items[i][0][j].angle);
+				if((items[i][0][j].pos[0]-items[i][0][j].sprite.size[0]<=canvas.width && items[i][0][j].pos[0]+items[i][0][j].sprite.size[0]>=0) && (items[i][0][j].pos[1]-items[i][0][j].sprite.size[1]<=canvas.height && items[i][0][j].pos[1]+items[i][0][j].sprite.size[1]>=0)) {
+					ctx.save();
+					ctx.translate(items[i][0][j].pos[0], items[i][0][j].pos[1]);
+					// Rotate angle of item
+					if(items[i][1] == 1) {
+						ctx.rotate(items[i][0][j].angle);
+					}
+					items[i][0][j].sprite.render(ctx);
+					ctx.restore();
 				}
-				items[i][0][j].sprite.render(ctx);
-				ctx.restore();
 			}
 		}
 	}
@@ -396,15 +398,17 @@
 
 	function renderEntities(entities) {
 		for(var i=0; i<entities.length; i++) {
-			ctx.save();
-			ctx.translate(entities[i].pos[0], entities[i].pos[1]);
-			if(entities[i].active){
-				ctx.rotate(Math.atan2(player.pos[1]-entities[i].pos[1]  , player.pos[0]-entities[i].pos[0]  ) + Math.PI/2);
-			}else{
-				ctx.rotate(entities[i].angle);
+			if((entities[i].pos[0]-entities[i].sprite.size[0]<=canvas.width && entities[i].pos[0]+entities[i].sprite.size[0]>=0) && (entities[i].pos[1]-entities[i].sprite.size[1]<=canvas.height && entities[i].pos[1]+entities[i].sprite.size[1]>=0)) {
+				ctx.save();
+				ctx.translate(entities[i].pos[0], entities[i].pos[1]);
+				if(entities[i].active){
+					ctx.rotate(Math.atan2(player.pos[1]-entities[i].pos[1]  , player.pos[0]-entities[i].pos[0]  ) + Math.PI/2);
+				}else{
+					ctx.rotate(entities[i].angle);
+				}
+				entities[i].sprite.render(ctx);
+				ctx.restore();
 			}
-			entities[i].sprite.render(ctx);
-			ctx.restore();
 		}
 	}
 
@@ -412,70 +416,71 @@
 		if(moveWorld == 0 ) {
 	    for(var i=0;i<entities.length;i++){
 
-	      entities[i].lastPosition = [entities[i].pos[0],entities[i].pos[1]];
+	    	if((entities[i].pos[0]-entities[i].sprite.size[0]<=canvas.width && entities[i].pos[0]+entities[i].sprite.size[0]>=0) && (entities[i].pos[1]-entities[i].sprite.size[1]<=canvas.height && entities[i].pos[1]+entities[i].sprite.size[1]>=0)) {
 
-	      entities[i].cicle += 1;
-	      if(entities[i].cicle == entities[i].endCicle){
-	        entities[i].course = random(0,7);
-	        entities[i].angle = entities[i].chooseAngle();
-	        entities[i].cicle = 0;
-	      }
-	      if(!entities[i].active) {
-	      	//entities[i].sprite.update(dt);
-		      switch(entities[i].course) {
-		        case 0:
-		          entities[i].pos[0] -= entities[i].speed*dt;
-		          break;
-		        case 1:
-		          entities[i].pos[0] -= entities[i].speed*dt;
-		          entities[i].pos[1] -= entities[i].speed*dt;
-		          break;
-		        case 2:
-		          entities[i].pos[1] -= entities[i].speed*dt;
-		          break;
-		        case 3:
-		          entities[i].pos[0] += entities[i].speed*dt;
-		          entities[i].pos[1] -= entities[i].speed*dt;
-		          break;
-		        case 4:
-		          entities[i].pos[0] += entities[i].speed*dt;
-		          break;
-		        case 5:
-		          entities[i].pos[0] += entities[i].speed*dt;
-		          entities[i].pos[1] += entities[i].speed*dt;
-		          break;
-		        case 6:
-		          entities[i].pos[1] += entities[i].speed*dt;
-		          break;
-		        case 7:
-		          entities[i].pos[0] -= entities[i].speed*dt;
-		          entities[i].pos[1] += entities[i].speed*dt;
-		          break;
+		      entities[i].lastPosition = [entities[i].pos[0],entities[i].pos[1]];
+
+		      entities[i].cicle += 1;
+		      if(entities[i].cicle == entities[i].endCicle){
+		        entities[i].course = random(0,7);
+		        entities[i].angle = entities[i].chooseAngle();
+		        entities[i].cicle = 0;
+		      }
+		      if(!entities[i].active) {
+		      	//entities[i].sprite.update(dt);
+			      switch(entities[i].course) {
+			        case 0:
+			          entities[i].pos[0] -= entities[i].speed*dt;
+			          break;
+			        case 1:
+			          entities[i].pos[0] -= entities[i].speed*dt;
+			          entities[i].pos[1] -= entities[i].speed*dt;
+			          break;
+			        case 2:
+			          entities[i].pos[1] -= entities[i].speed*dt;
+			          break;
+			        case 3:
+			          entities[i].pos[0] += entities[i].speed*dt;
+			          entities[i].pos[1] -= entities[i].speed*dt;
+			          break;
+			        case 4:
+			          entities[i].pos[0] += entities[i].speed*dt;
+			          break;
+			        case 5:
+			          entities[i].pos[0] += entities[i].speed*dt;
+			          entities[i].pos[1] += entities[i].speed*dt;
+			          break;
+			        case 6:
+			          entities[i].pos[1] += entities[i].speed*dt;
+			          break;
+			        case 7:
+			          entities[i].pos[0] -= entities[i].speed*dt;
+			          entities[i].pos[1] += entities[i].speed*dt;
+			          break;
+			      }
+
 		      }
 
-	      }
+		      // Trigger
+	        if((player.pos[0]>entities[i].pos[0]-triggerDistance&&player.pos[0]<entities[i].pos[0]+triggerDistance)&&(player.pos[1]>entities[i].pos[1]-triggerDistance&&player.pos[1]<entities[i].pos[1]+triggerDistance)){
 
-	      // Trigger
-        if((player.pos[0]>entities[i].pos[0]-triggerDistance&&player.pos[0]<entities[i].pos[0]+triggerDistance)&&(player.pos[1]>entities[i].pos[1]-triggerDistance&&player.pos[1]<entities[i].pos[1]+triggerDistance)){
+	          entities[i].active = true;
 
-          entities[i].active = true;
+	          if(player.pos[0]>entities[i].pos[0]){
+	            entities[i].pos[0] += entities[i].speed * dt * 1.5;
+	          }else if(player.pos[0]<entities[i].pos[0]){
+	            entities[i].pos[0] -= entities[i].speed * dt * 1.5;
+	          }
+	          if(player.pos[1]>entities[i].pos[1]){
+	          	entities[i].pos[1] += entities[i].speed * dt * 1.5;
+	          }else if(player.pos[1]<entities[i].pos[1]){
+	          	entities[i].pos[1] -= entities[i].speed * dt * 1.5;
+	          }
 
-          if(player.pos[0]>entities[i].pos[0]){
-            entities[i].pos[0] += entities[i].speed * dt * 1.5;
-          }else if(player.pos[0]<entities[i].pos[0]){
-            entities[i].pos[0] -= entities[i].speed * dt * 1.5;
-          }
-          if(player.pos[1]>entities[i].pos[1]){
-          	entities[i].pos[1] += entities[i].speed * dt * 1.5;
-          }else if(player.pos[1]<entities[i].pos[1]){
-          	entities[i].pos[1] -= entities[i].speed * dt * 1.5;
-          }
-
-        }else{
-          entities[i].active = false;
-        }
-
-
+	        }else{
+	          entities[i].active = false;
+	        }
+      	}
 	    }
 	  }
   }

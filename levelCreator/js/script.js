@@ -77,7 +77,7 @@
 
 	function addToMass(mass){
 
-		if(xx<=400&&yy<=300){
+		if(xx<=1000&&yy<=600){
 
 		mass.push([xx,yy]);
 		console.log(xx+','+yy);

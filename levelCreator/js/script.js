@@ -23,7 +23,7 @@
 	function draw_b() {
 		drawCell(coord,"#cccccc",40,40);
 		drawCell(coord2,"#ff0000",10,10);
-		drawCell(coord3,"#0000ff",10,10);
+		drawCell(coord3,"#0000ff",20,20);
 		drawCell(coord4,"#ff00ff",10,10);
 		context.moveTo(0.5,0.5);
 		context.lineTo(1000.5,0.5);
@@ -98,7 +98,7 @@
 					break;
 				case 3:
 					context.strokeStyle = "#0000ff";
-					context.strokeRect(xx,yy,10,10);
+					context.strokeRect(xx,yy,20,20);
 					break;
 				case 4:
 					context.strokeStyle = "#ff00ff";

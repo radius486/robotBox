@@ -105,7 +105,8 @@
 		'images/enemie.png',
 		'images/box.png',
 		'images/energy.png',
-		'images/bomb.png'
+		'images/bomb.png',
+		'images/wall.png'
 	]);
 
 	resources.onReady(init);
@@ -127,7 +128,7 @@
 	function render() {
 		clearCanvas();
 		renderEntities(enemies);
-		renderItems([[boxes], [energy], [bombs], [bullets, 1], [explosions]]);
+		renderItems([[walls],[boxes], [energy], [bombs], [bullets, 1], [explosions]]);
 		player.render();
 	}
 
@@ -159,6 +160,14 @@
 	}
 
 	function checkCollisions() {
+
+		// Player with walls
+		for(var i=0;i<walls.length;i++){
+      if(boxCollides(player.pos, player.sprite.size, walls[i].pos, walls[i].sprite.size)) {
+        player.pos = player.lastPosition;
+      }
+    }
+
 		// Player with boxes
 		for(var i=0;i<boxes.length;i++){
 			if(boxCollides(player.pos, player.sprite.size, boxes[i].pos, boxes[i].sprite.size)) {
@@ -184,6 +193,28 @@
 				console.log('player energy = '+ player.energy);
 			}
 		}
+
+		// Walls with bullets
+    for(var i=0;i<walls.length;i++){
+
+      for(var j=0; j<bullets.length; j++) {
+
+        if(boxCollides(walls[i].pos, walls[i].sprite.size, bullets[j].pos, bullets[j].sprite.size)){
+
+          explosion(bullets[j].pos);
+
+          walls[i].energy -= bullets[j].energy;
+          console.log('wall energy  = '+ walls[i].energy);
+          if(walls[i].energy <= 0){
+            explosion(walls[i].pos);
+            walls.splice(i, 1);
+            i--;
+          }
+          bullets.splice(j, 1);
+          break;
+        }
+      }
+    }
 
 		// Boxes with bullets
 		for(var i=0;i<boxes.length;i++){
@@ -225,6 +256,15 @@
 					}
 				}
 			}*/
+
+			// Enemies with walls
+      for(var j=0; j < walls.length; j++){
+        if(boxCollides(enemies[i].pos, enemies[i].sprite.size, walls[j].pos, walls[j].sprite.size)){
+            enemies[i].pos = enemies[i].lastPosition;
+            enemies[i].course = random(0,7);
+            enemies[i].angle = enemies[i].chooseAngle();
+        }
+      }
 
 			// Enemies with boxes
 			for(var j=0; j < boxes.length; j++){
@@ -273,6 +313,7 @@
 				break;
 			case 1:
 				player.pos[0] += worldSpeed * dt;
+				changePosition(walls, worldSpeed* dt, 1);
 				changePosition(boxes, worldSpeed* dt, 1);
 				changePosition(energy, worldSpeed* dt, 1);
 				changePosition(bombs, worldSpeed* dt, 1);
@@ -283,6 +324,7 @@
 				break;
 			case 2:
 				player.pos[0] -= worldSpeed * dt;
+				changePosition(walls, worldSpeed* dt, 2);
 				changePosition(boxes, worldSpeed* dt, 2);
 				changePosition(energy, worldSpeed* dt, 2);
 				changePosition(bombs, worldSpeed* dt, 2);
@@ -293,6 +335,7 @@
 				break;
 			case 3:
 				player.pos[1] += worldSpeed* dt;
+				changePosition(walls, worldSpeed* dt, 3);
 				changePosition(boxes, worldSpeed* dt, 3);
 				changePosition(energy, worldSpeed* dt, 3);
 				changePosition(bombs, worldSpeed* dt, 3);
@@ -303,6 +346,7 @@
 				break;
 			case 4:
 				player.pos[1] -= worldSpeed * dt;
+				changePosition(walls, worldSpeed* dt, 4);
 				changePosition(boxes, worldSpeed* dt, 4);
 				changePosition(energy, worldSpeed* dt, 4);
 				changePosition(bombs, worldSpeed* dt, 4);

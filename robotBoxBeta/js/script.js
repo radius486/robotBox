@@ -20,7 +20,7 @@
 	var ctx = canvas.getContext("2d");
 
 	var player = {
-		pos:[30, 30],
+		pos:[50, 50],
 		lastPosition: [],
 		cursor: [200, 200],
 		speed: 200,

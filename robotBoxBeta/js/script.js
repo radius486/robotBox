@@ -24,7 +24,7 @@
 		lastPosition: [],
 		cursor: [200, 200],
 		speed: 200,
-		energy: 50,
+		energy: 100,
 		sprite: new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]),
 		render: function () {
 							ctx.save();
@@ -100,34 +100,6 @@
 		}
 	};
 
-	// Boxes
-	var boxCords = [[100, 100], [200, 200], [300, 300], [200, 100], [400, 100], [300, 200], [100, 400], [600, 300], [400, 400]];
-	var boxes = [];
-
-	// Energy
-	var energyCords =  [[200, 300],[400, 600]];
-	var energy = [];
-
-	// Bombs
-	var bombCords = [[300, 100], [300, 400]];
-	var bombs = [];
-
-	// Bullets
-	var bullets = [];
-
-	// Explosions
-	var explosions = [];
-
-	// Enemies
-	var enemiesCords=[[350,100],[400,200],[450,100],[100, 200], [200, 300], [300, 400], [200, 400], [400, 300], [300, 500], [100, 500], [600, 400], [400, 500]];
-	var enemies=[];
-
-	createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 50);
-	createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [20, 20], 16, [0, 1])), 10);
-	createItems(bombCords, bombs, (new Sprite('images/bomb.png', [0, 0], [20, 20], 16, [0, 1])), 40);
-	createEntities(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [36, 56],6, [0, 1, 2, 3, 2, 1])), 30, 50);
-
-
 	resources.load([
 		'images/sprites.png',
 		'images/enemie.png',
@@ -161,6 +133,7 @@
 
 	function update(dt) {
 		player.move(dt);
+		//player.sprite.update(dt);
 		player.checkBonds();
 		moveWorldF(dt);
 		checkCollisions();
@@ -171,10 +144,6 @@
 
 	function clearCanvas(){
 		canvas.width = canvas.width;
-	}
-
-	function random(from,to){
-    return Math.floor(Math.random()*(to-from+1))+from;
 	}
 
 	function collides(x, y, r, b, x2, y2, r2, b2) {
@@ -257,6 +226,22 @@
 				}
 			}*/
 
+			// Enemies with boxes
+			for(var j=0; j < boxes.length; j++){
+				if(boxCollides(enemies[i].pos, enemies[i].sprite.size, boxes[j].pos, boxes[j].sprite.size)){
+						enemies[i].pos = enemies[i].lastPosition;
+						enemies[i].course = random(0,7);
+						enemies[i].angle = enemies[i].chooseAngle();
+				}
+			}
+
+			// Enemies with player
+			if(boxCollides(player.pos, player.sprite.size, enemies[i].pos, enemies[i].sprite.size)){
+				enemies[i].pos = enemies[i].lastPosition;
+				player.energy -= 1;
+				console.log('player energy = ' + player.energy);
+			}
+
 			// Enemies with bullets
 			for(var j=0; j<bullets.length; j++) {
 
@@ -274,20 +259,6 @@
 					bullets.splice(j, 1);
 					break;
 				}
-			}
-
-			// Enemies with boxes
-			for(var j=0; j < boxes.length; j++){
-				if(boxCollides(enemies[i].pos, enemies[i].sprite.size, boxes[j].pos, boxes[j].sprite.size)){
-						enemies[i].pos = enemies[i].lastPosition;
-						enemies[i].course = random(0,7);
-						enemies[i].angle = enemies[i].chooseAngle();
-				}
-			}
-
-			// Enemies with player
-			if(boxCollides(player.pos, player.sprite.size, enemies[i].pos, enemies[i].sprite.size)){
-				enemies[i].pos = enemies[i].lastPosition;
 			}
 
 		}
@@ -363,34 +334,19 @@
 		}
 	}
 
-	// Items implementation
-	function createItems(coords, array, sprite, energy) {
-		for(var i=0; i<coords.length; i++) {
-			var item = new Items([coords[i][0], coords[i][1]], sprite, energy);
-			array.push(item);
-		}
-	}
-
-	// Object constructor
-	function Items(pos, sprite, energy, speed, angle) {
-		this.pos = pos;
-		this.sprite = sprite;
-		this.energy = energy;
-		this.speed = speed;
-		this.angle = angle;
-	}
-
 	function renderItems(items) {
 		for(var i=0; i<items.length; i++) {
 			for(var j=0; j<items[i][0].length; j++) {
-				ctx.save();
-				ctx.translate(items[i][0][j].pos[0], items[i][0][j].pos[1]);
-				// Rotate angle of item
-				if(items[i][1] == 1) {
-					ctx.rotate(items[i][0][j].angle);
+				if((items[i][0][j].pos[0]-items[i][0][j].sprite.size[0]<=canvas.width && items[i][0][j].pos[0]+items[i][0][j].sprite.size[0]>=0) && (items[i][0][j].pos[1]-items[i][0][j].sprite.size[1]<=canvas.height && items[i][0][j].pos[1]+items[i][0][j].sprite.size[1]>=0)) {
+					ctx.save();
+					ctx.translate(items[i][0][j].pos[0], items[i][0][j].pos[1]);
+					// Rotate angle of item
+					if(items[i][1] == 1) {
+						ctx.rotate(items[i][0][j].angle);
+					}
+					items[i][0][j].sprite.render(ctx);
+					ctx.restore();
 				}
-				items[i][0][j].sprite.render(ctx);
-				ctx.restore();
 			}
 		}
 	}
@@ -440,69 +396,19 @@
 		}
 	}
 
-	function createEntities(coords, array, sprite, energy, speed) {
-
-		// Entities constructor
-		function Entities (pos, sprite, energy, speed, active){
-			this.pos = pos;
-			this.lastPosition = pos;
-			this.sprite = sprite;
-			this.energy = energy;
-			this.speed = speed;
-			this.active = false;
-			this.course = random(0,7);
-			this.cicle = 0;
-			this.endCicle = random(50,100);
-			this.angle = this.chooseAngle();
-		}
-
-		Entities.prototype.chooseAngle = function () {
-			switch(this.course){
-				case 0:
-					return Math.PI*3/2;
-					break;
-				case 1:
-					return Math.PI*11/6;
-					break;
-				case 2:
-					return Math.PI*2;
-					break;
-				case 3:
-					return Math.PI/4;
-					break;
-				case 4:
-					return Math.PI/2;
-					break;
-				case 5:
-					return Math.PI*3/4;
-					break;
-				case 6:
-					return Math.PI;
-					break;
-				case 7:
-					return Math.PI*4/3;
-					break;
-			}
-		}
-
-		for(var i=0;i<coords.length;i++){
-			var entity = new Entities ([coords[i][0],coords[i][1]], sprite, energy, speed);
-			array.push(entity);
-		}
-
-	}
-
 	function renderEntities(entities) {
 		for(var i=0; i<entities.length; i++) {
-			ctx.save();
-			ctx.translate(entities[i].pos[0], entities[i].pos[1]);
-			if(entities[i].active){
-				ctx.rotate(Math.atan2(player.pos[1]-entities[i].pos[1]  , player.pos[0]-entities[i].pos[0]  ) + Math.PI/2);
-			}else{
-				ctx.rotate(entities[i].angle);
+			if((entities[i].pos[0]-entities[i].sprite.size[0]<=canvas.width && entities[i].pos[0]+entities[i].sprite.size[0]>=0) && (entities[i].pos[1]-entities[i].sprite.size[1]<=canvas.height && entities[i].pos[1]+entities[i].sprite.size[1]>=0)) {
+				ctx.save();
+				ctx.translate(entities[i].pos[0], entities[i].pos[1]);
+				if(entities[i].active){
+					ctx.rotate(Math.atan2(player.pos[1]-entities[i].pos[1]  , player.pos[0]-entities[i].pos[0]  ) + Math.PI/2);
+				}else{
+					ctx.rotate(entities[i].angle);
+				}
+				entities[i].sprite.render(ctx);
+				ctx.restore();
 			}
-			entities[i].sprite.render(ctx);
-			ctx.restore();
 		}
 	}
 
@@ -510,69 +416,71 @@
 		if(moveWorld == 0 ) {
 	    for(var i=0;i<entities.length;i++){
 
-	      entities[i].lastPosition = [entities[i].pos[0],entities[i].pos[1]];
+	    	if((entities[i].pos[0]-entities[i].sprite.size[0]<=canvas.width && entities[i].pos[0]+entities[i].sprite.size[0]>=0) && (entities[i].pos[1]-entities[i].sprite.size[1]<=canvas.height && entities[i].pos[1]+entities[i].sprite.size[1]>=0)) {
 
-	      entities[i].cicle += 1;
-	      if(entities[i].cicle == entities[i].endCicle){
-	        entities[i].course = random(0,7);
-	        entities[i].angle = entities[i].chooseAngle();
-	        entities[i].cicle = 0;
-	      }
-	      if(!entities[i].active) {
-		      switch(entities[i].course) {
-		        case 0:
-		          entities[i].pos[0] -= entities[i].speed*dt;
-		          break;
-		        case 1:
-		          entities[i].pos[0] -= entities[i].speed*dt;
-		          entities[i].pos[1] -= entities[i].speed*dt;
-		          break;
-		        case 2:
-		          entities[i].pos[1] -= entities[i].speed*dt;
-		          break;
-		        case 3:
-		          entities[i].pos[0] += entities[i].speed*dt;
-		          entities[i].pos[1] -= entities[i].speed*dt;
-		          break;
-		        case 4:
-		          entities[i].pos[0] += entities[i].speed*dt;
-		          break;
-		        case 5:
-		          entities[i].pos[0] += entities[i].speed*dt;
-		          entities[i].pos[1] += entities[i].speed*dt;
-		          break;
-		        case 6:
-		          entities[i].pos[1] += entities[i].speed*dt;
-		          break;
-		        case 7:
-		          entities[i].pos[0] -= entities[i].speed*dt;
-		          entities[i].pos[1] += entities[i].speed*dt;
-		          break;
+		      entities[i].lastPosition = [entities[i].pos[0],entities[i].pos[1]];
+
+		      entities[i].cicle += 1;
+		      if(entities[i].cicle == entities[i].endCicle){
+		        entities[i].course = random(0,7);
+		        entities[i].angle = entities[i].chooseAngle();
+		        entities[i].cicle = 0;
+		      }
+		      if(!entities[i].active) {
+		      	//entities[i].sprite.update(dt);
+			      switch(entities[i].course) {
+			        case 0:
+			          entities[i].pos[0] -= entities[i].speed*dt;
+			          break;
+			        case 1:
+			          entities[i].pos[0] -= entities[i].speed*dt;
+			          entities[i].pos[1] -= entities[i].speed*dt;
+			          break;
+			        case 2:
+			          entities[i].pos[1] -= entities[i].speed*dt;
+			          break;
+			        case 3:
+			          entities[i].pos[0] += entities[i].speed*dt;
+			          entities[i].pos[1] -= entities[i].speed*dt;
+			          break;
+			        case 4:
+			          entities[i].pos[0] += entities[i].speed*dt;
+			          break;
+			        case 5:
+			          entities[i].pos[0] += entities[i].speed*dt;
+			          entities[i].pos[1] += entities[i].speed*dt;
+			          break;
+			        case 6:
+			          entities[i].pos[1] += entities[i].speed*dt;
+			          break;
+			        case 7:
+			          entities[i].pos[0] -= entities[i].speed*dt;
+			          entities[i].pos[1] += entities[i].speed*dt;
+			          break;
+			      }
+
 		      }
 
-	      }
+		      // Trigger
+	        if((player.pos[0]>entities[i].pos[0]-triggerDistance&&player.pos[0]<entities[i].pos[0]+triggerDistance)&&(player.pos[1]>entities[i].pos[1]-triggerDistance&&player.pos[1]<entities[i].pos[1]+triggerDistance)){
 
-	      // Trigger
-        if((player.pos[0]>entities[i].pos[0]-triggerDistance&&player.pos[0]<entities[i].pos[0]+triggerDistance)&&(player.pos[1]>entities[i].pos[1]-triggerDistance&&player.pos[1]<entities[i].pos[1]+triggerDistance)){
+	          entities[i].active = true;
 
-          entities[i].active = true;
+	          if(player.pos[0]>entities[i].pos[0]){
+	            entities[i].pos[0] += entities[i].speed * dt * 1.5;
+	          }else if(player.pos[0]<entities[i].pos[0]){
+	            entities[i].pos[0] -= entities[i].speed * dt * 1.5;
+	          }
+	          if(player.pos[1]>entities[i].pos[1]){
+	          	entities[i].pos[1] += entities[i].speed * dt * 1.5;
+	          }else if(player.pos[1]<entities[i].pos[1]){
+	          	entities[i].pos[1] -= entities[i].speed * dt * 1.5;
+	          }
 
-          if(player.pos[0]>entities[i].pos[0]){
-            entities[i].pos[0] += entities[i].speed * dt * 2;
-          }else if(player.pos[0]<entities[i].pos[0]){
-            entities[i].pos[0] -= entities[i].speed * dt * 2;
-          }
-          if(player.pos[1]>entities[i].pos[1]){
-          	entities[i].pos[1] += entities[i].speed * dt * 2;
-          }else if(player.pos[1]<entities[i].pos[1]){
-          	entities[i].pos[1] -= entities[i].speed * dt * 2;
-          }
-
-        }else{
-          entities[i].active = false;
-        }
-
-
+	        }else{
+	          entities[i].active = false;
+	        }
+      	}
 	    }
 	  }
   }

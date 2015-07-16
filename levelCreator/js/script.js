@@ -56,8 +56,9 @@
 	}
 
 	gCanvasElement.addEventListener("click", halmaOnClick, false);
+	gCanvasElement.addEventListener("mousemove", halmaOnHover, false);
 
-	function halmaOnClick(e) {
+	function setCanvasCoords(e) {
 		if (e.pageX != undefined && e.pageY != undefined) {
 			x = e.pageX;
 			y = e.pageY;
@@ -71,7 +72,40 @@
 		x -= gCanvasElement.offsetLeft;
 		y -= gCanvasElement.offsetTop;
 		//console.log(x+','+y);
+	}
+
+	function halmaOnClick(e) {
+		setCanvasCoords(e);
 		positionCheck();
+
+	}
+
+	function halmaOnHover(e) {
+		setCanvasCoords(e);
+		xx = Math.floor(x/10)*10;
+		yy = Math.floor(y/10)*10;
+		if(xx<=990&&yy<=590){
+			gCanvasElement.width = gCanvasElement.width;
+			switch(choose){
+				case 1:
+					context.strokeStyle = "#00ff00";
+					context.strokeRect(xx,yy,40,40);
+					break;
+				case 2:
+					context.strokeStyle = "#ff0000";
+					context.strokeRect(xx,yy,10,10);
+					break;
+				case 3:
+					context.strokeStyle = "#666666";
+					context.strokeRect(xx,yy,10,10);
+					break;
+				case 4:
+					context.strokeStyle = "#999999";
+					context.strokeRect(xx,yy,10,10);
+					break;
+			}
+			draw_b();
+		}
 
 	}
 

@@ -22,9 +22,9 @@
 
 	function draw_b() {
 		drawCell(coord,"#cccccc",40,40);
-		drawCell(coord2,"#333333",10,10);
-		drawCell(coord3,"#666666",10,10);
-		drawCell(coord4,"#999999",10,10);
+		drawCell(coord2,"#ff0000",10,10);
+		drawCell(coord3,"#0000ff",10,10);
+		drawCell(coord4,"#ff00ff",10,10);
 		context.moveTo(0.5,0.5);
 		context.lineTo(1000.5,0.5);
 		context.lineTo(1000.5,600.5);
@@ -45,13 +45,13 @@
 
 		context.strokeStyle="#cccccc";
 		context.stroke();
-		context.strokeStyle = "#cccccc";
+		context.strokeStyle = "#00ff00";
 		context.strokeRect(650,660,10,10);
-		context.strokeStyle = "#333333";
+		context.strokeStyle = "#ff0000";
 		context.strokeRect(660,660,10,10);
-		context.strokeStyle = "#666666";
+		context.strokeStyle = "#0000ff";
 		context.strokeRect(670,660,10,10);
-		context.strokeStyle = "#999999";
+		context.strokeStyle = "#ff00ff";
 		context.strokeRect(680,660,10,10);
 	}
 
@@ -84,8 +84,9 @@
 		setCanvasCoords(e);
 		xx = Math.floor(x/10)*10;
 		yy = Math.floor(y/10)*10;
+		gCanvasElement.width = gCanvasElement.width;
+		draw_b();
 		if(xx<=990&&yy<=590){
-			gCanvasElement.width = gCanvasElement.width;
 			switch(choose){
 				case 1:
 					context.strokeStyle = "#00ff00";
@@ -96,15 +97,14 @@
 					context.strokeRect(xx,yy,10,10);
 					break;
 				case 3:
-					context.strokeStyle = "#666666";
+					context.strokeStyle = "#0000ff";
 					context.strokeRect(xx,yy,10,10);
 					break;
 				case 4:
-					context.strokeStyle = "#999999";
+					context.strokeStyle = "#ff00ff";
 					context.strokeRect(xx,yy,10,10);
 					break;
 			}
-			draw_b();
 		}
 
 	}
@@ -138,15 +138,21 @@
 		}else if(xx==680&&yy==660){
 			choose=4;
 		}else{
-		if(choose==1){
-			addToMass(coord);
-		}else if(choose==2){
-			addToMass(coord2);
-		}else if(choose==3){
-			addToMass(coord3);
-		}else if(choose==4){
-			addToMass(coord4);
-		}
+
+			switch(choose){
+				case 1:
+					addToMass(coord);
+					break;
+				case 2:
+					addToMass(coord2);
+					break;
+				case 3:
+					addToMass(coord3);
+					break;
+				case 4:
+					addToMass(coord4);
+					break;
+			}
 		}
 			gCanvasElement.width = gCanvasElement.width;
 			draw_b();

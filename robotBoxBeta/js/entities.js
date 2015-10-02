@@ -4,7 +4,7 @@
   function Entities (pos, sprite, energy, speed, active){
     this.pos = pos;
     this.lastPosition = pos;
-    this.sprite = sprite;
+    this.sprite = new Sprite(sprite, [0, 0], [32, 67],6, [0, 1, 2, 3, 4]);
     this.energy = energy;
     this.speed = speed;
     this.active = false;

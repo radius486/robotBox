@@ -126,7 +126,7 @@
 		main();
 	}
 
-	function render() {
+	function render(dt) {
 		clearCanvas();
 		renderEntities(enemies);
 		renderItems([[walls],[boxes], [energy], [bombs], [bullets, 1], [explosions]]);
@@ -504,6 +504,8 @@
 			          break;
 			      }
 
+		      }else {
+		      	entities[i].sprite.update(dt);
 		      }
 
 		      // Trigger

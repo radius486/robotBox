@@ -25,7 +25,7 @@
 		cursor: [200, 200],
 		speed: 200,
 		energy: 100,
-		sprite: new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]),
+		sprite: new Sprite('images/player.png', [0, 0], [40, 28], 16, [0, 1]),
 		render: function () {
 							ctx.save();
 							ctx.translate(this.pos[0], this.pos[1]);
@@ -106,7 +106,8 @@
 		'images/box.png',
 		'images/energy.png',
 		'images/bomb.png',
-		'images/wall.png'
+		'images/wall.png',
+		'images/player.png'
 	]);
 
 	resources.onReady(init);

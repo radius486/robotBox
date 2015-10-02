@@ -28,9 +28,9 @@
 
   createItems(wallsCords, walls, (new Sprite('images/wall.png', [0, 0], [20, 20], 16, [0, 1])), 50);
   createItems(boxCords, boxes, (new Sprite('images/box.png', [0, 0], [40, 40], 16, [0, 1])), 50);
-  createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [20, 20], 16, [0, 1])), 10);
-  createItems(bombCords, bombs, (new Sprite('images/bomb.png', [0, 0], [20, 20], 16, [0, 1])), 40);
-  createEntities(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [36, 56],6, [0, 1, 2, 3, 2, 1])), 30, 50);
+  createItems(energyCords, energy, (new Sprite('images/energy.png', [0, 0], [30, 30], 16, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])), 10);
+  createItems(bombCords, bombs, (new Sprite('images/bomb.png', [0, 0], [30, 30], 16, [0, 1])), 40);
+  createEntities(enemiesCords, enemies, (new Sprite('images/enemie.png', [0, 0], [32, 67],6, [0, 1, 2, 3, 2, 1])), 30, 50);
 
   window.walls = walls;
   window.boxes = boxes;

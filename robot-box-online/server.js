@@ -20,7 +20,12 @@ function Player(pos, xx, yy) {
 function newConnection(socket) {
   console.log('New connection: ' + socket.id);
 
-  allPlayers[socket.id] = new Player([30, 30], 0, 0);
+
+  allPlayers[socket.id] = new Player([30, 30], 200, 200);
+
+  var posX = (Object.keys(allPlayers).indexOf(socket.id) + 1) * 50;
+
+  allPlayers[socket.id].pos[0] = posX;
 
   socket.emit('getownid', socket.id);
 

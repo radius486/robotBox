@@ -24,14 +24,9 @@
 
   var triggerDistance = 200;
 
-  var lastPosition=[];
-
   var player = {
       pos:[30, 30],
       sprite: new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]),
-      angle: function() {
-        return Math.atan2(this.yy - this.pos[1], this.xx - this.pos[0]);
-      }
   };
 
   var playerId;
@@ -52,12 +47,22 @@
 
     for (var key in serverplayers) {
       serverplayers[key].sprite = new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]);
+
+      if (key == playerId) {
+        player = serverplayers[key];
+      }
     }
+
+    player.angle = function() {
+      return Math.atan2(this.yy - this.pos[1], this.xx - this.pos[0]);
+    };
   });
 
   socket.on('getnewplayer', function(key) {
+    var posX = (Object.keys(serverplayers).indexOf(socket.id) + 2) * 50;
+
     serverplayers[key] = {
-      pos: [30, 30],
+      pos: [posX, 30],
       xx: 0,
       yy: 0,
       sprite: new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1])
@@ -103,6 +108,8 @@
 
   function update(dt) {
     handleinput(dt);
+    player.sprite.update(dt);
+    updateEntities(dt, serverplayers);
   }
 
   function clearCanvas(){
@@ -127,6 +134,29 @@
     }
   }
 
+  function updateEntities(dt, list) {
+    for (var key in list) {
+      // Not render clone of player
+      if (key != playerId) {
+        list[key].sprite.update(dt);
+      }
+    }
+  }
+
+  function sendOrBang(list, data) {
+    for (var key in list) {
+      // Not check yourself
+      if (key != playerId) {
+        if (boxCollides(player.pos, player.sprite.size, list[key].pos, list[key].sprite.size)) {
+          player.pos = player.lastPosition;
+          console.log('bang');
+        } else {
+          socket.emit('move', data);
+        }
+      }
+    }
+  }
+
   function updatePosition(data) {
     serverplayers[data.id].pos[0] = data.x;
     serverplayers[data.id].pos[1] = data.y;
@@ -143,10 +173,21 @@
     ctx.fillRect(entity.xx-2, entity.yy-2, 4, 4);
   }
 
+  function collides(x, y, r, b, x2, y2, r2, b2) {
+      return !(r <= x2 || x > r2 ||
+              b <= y2 || y > b2);
+  }
+
+  function boxCollides(pos, size, pos2, size2) {
+    return collides(pos[0]-size[0]/2, pos[1]-size[1]/2,
+            pos[0]+size[0]/2, pos[1]+size[1]/2,
+            pos2[0]-size2[0]/2, pos2[1]-size2[1]/2,
+            pos2[0]+size2[0]/2, pos2[1]+size2[1]/2);
+  }
+
   function handleinput(dt) {
 
-    lastPosition=[player.pos[0] ,player.pos[1] ];
-
+    player.lastPosition=[player.pos[0] ,player.pos[1] ];
 
     if(input.isDown('DOWN') || input.isDown('s')) {
       player.pos[1]+= playerSpeed * dt;
@@ -168,15 +209,13 @@
 
     }
 
-    if (lastPosition[0] != player.pos[0] || lastPosition[1] != player.pos[1]) {
+    if (player.lastPosition[0] != player.pos[0] || player.lastPosition[1] != player.pos[1]) {
       var data = {
         x: player.pos[0] ,
         y: player.pos[1]
       };
-      socket.emit('move', data);
+      sendOrBang(serverplayers, data);
     }
-
-
   }
 
   function targetPosition(e) {

@@ -29,6 +29,11 @@
       sprite: new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]),
   };
 
+  var portal = {
+    pos: [30, 30],
+    sprite: new Sprite('images/portal.png', [0, 0], [50, 50], 16, [0, 1])
+  };
+
   var playerId;
 
   var serverplayers = {};
@@ -38,18 +43,16 @@
   var canvas = document.getElementById("field");
   var ctx = canvas.getContext("2d");
 
-  socket.on('getownid', function(data) {
-    playerId = data;
-  });
-
   socket.on('getplayers', function(data) {
-    serverplayers = data;
+    serverplayers = data[1];
+    playerId = data[0];
 
     for (var key in serverplayers) {
       serverplayers[key].sprite = new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]);
 
       if (key == playerId) {
         player = serverplayers[key];
+        delete serverplayers[key];
       }
     }
 
@@ -58,15 +61,9 @@
     };
   });
 
-  socket.on('getnewplayer', function(key) {
-    var posX = (Object.keys(serverplayers).indexOf(socket.id) + 2) * 50;
-
-    serverplayers[key] = {
-      pos: [posX, 30],
-      xx: 0,
-      yy: 0,
-      sprite: new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1])
-    };
+  socket.on('getnewplayer', function(player) {
+    serverplayers[player[0]] = player[1];
+    serverplayers[player[0]].sprite = new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]);
   });
 
   socket.on('deleteplayer', function(key) {
@@ -95,12 +92,15 @@
 
   resources.load([
     'images/sprites.png',
+    'images/box.png',
+    'images/portal.png'
   ]);
 
   resources.onReady(init);
 
   function render() {
     clearCanvas();
+    renderEntity(portal);
     renderEntity(player);
     renderEntities(serverplayers);
     drawCursor(player, '#000000');
@@ -126,33 +126,25 @@
 
   function renderEntities(list) {
     for (var key in list) {
-      // Not render clone of player
-      if (key != playerId) {
-        renderEntity(list[key]);
-        drawCursor(list[key]);
-      }
+      renderEntity(list[key]);
+      drawCursor(list[key]);
     }
   }
 
   function updateEntities(dt, list) {
     for (var key in list) {
-      // Not render clone of player
-      if (key != playerId) {
-        list[key].sprite.update(dt);
-      }
+      list[key].sprite.update(dt);
     }
   }
 
   function sendOrBang(list, data) {
     for (var key in list) {
-      // Not check yourself
-      if (key != playerId) {
-        if (boxCollides(player.pos, player.sprite.size, list[key].pos, list[key].sprite.size)) {
-          player.pos = player.lastPosition;
-          console.log('bang');
-        } else {
-          socket.emit('move', data);
-        }
+      if (boxCollides(player.pos, player.sprite.size, list[key].pos, list[key].sprite.size) &&
+          !boxCollides(player.pos, player.sprite.size, [30, 30], [50, 50])) {
+        player.pos = player.lastPosition;
+        console.log('bang');
+      } else {
+        socket.emit('move', data);
       }
     }
   }

@@ -20,20 +20,17 @@ function Player(pos, xx, yy) {
 function newConnection(socket) {
   console.log('New connection: ' + socket.id);
 
-
   allPlayers[socket.id] = new Player([30, 30], 200, 200);
 
-  var posX = (Object.keys(allPlayers).indexOf(socket.id) + 1) * 50;
+  var data = [socket.id, allPlayers];
 
-  allPlayers[socket.id].pos[0] = posX;
+  var player = [socket.id, allPlayers[socket.id]];
 
-  socket.emit('getownid', socket.id);
-
-  socket.emit('getplayers', allPlayers);
+  socket.emit('getplayers', data);
 
   //io.sockets.emit('getplayers', allPlayers);
 
-  socket.broadcast.emit('getnewplayer', socket.id);
+  socket.broadcast.emit('getnewplayer', player);
 
   socket.on('move', sendPosition);
 

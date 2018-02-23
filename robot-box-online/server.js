@@ -36,6 +36,8 @@ function newConnection(socket) {
 
   socket.on('cursor', sendCursors);
 
+  socket.on('shoot', sendBullets);
+
   socket.on('disconnect', removePlayer);
 
   function sendPosition(data) {
@@ -52,6 +54,10 @@ function newConnection(socket) {
     allPlayers[socket.id].yy[1] = data.yy;
     socket.broadcast.emit('cursor', data);
     //console.log(socket.id + ': ' + data.xx + ', ' + data.yy);
+  }
+
+  function sendBullets(data) {
+    socket.broadcast.emit('shoot', data);
   }
 
   function removePlayer() {

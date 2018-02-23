@@ -14,11 +14,7 @@
 
   var lastTime;
 
-  var targetX,targetY;
-
   var playerSpeed = 200;
-
-  var bulletSpeed = 2000;
 
   var enemiesSpeed = 10;
 
@@ -38,7 +34,7 @@
 
   var serverplayers = {};
 
-  var bullets=[];
+  var bullets = [];
 
   var canvas = document.getElementById("field");
   var ctx = canvas.getContext("2d");
@@ -59,6 +55,8 @@
     player.angle = function() {
       return Math.atan2(this.yy - this.pos[1], this.xx - this.pos[0]);
     };
+
+    player.target = [null, null];
   });
 
   socket.on('getnewplayer', function(player) {
@@ -74,6 +72,18 @@
   socket.on('move', updatePosition);
 
   socket.on('cursor', updateCursors);
+
+  socket.on('shoot', function(data) {
+    var bullet = data;
+
+    bullet.sprite = new Sprite('images/sprites.png', [0, 39], [18, 8]);
+
+    bullet.distance = function() {
+      return Math.sqrt(Math.pow((bullet.pos[0] - bullet.start[0]), 2) + Math.pow((bullet.pos[1] - bullet.start[1]), 2));
+    };
+
+    bullets.push(bullet);
+  });
 
   function main() {
     var now = Date.now();
@@ -100,6 +110,7 @@
 
   function render() {
     clearCanvas();
+    drawBullets();
     renderEntity(portal);
     renderEntity(player);
     renderEntities(serverplayers);
@@ -109,6 +120,7 @@
   function update(dt) {
     handleinput(dt);
     player.sprite.update(dt);
+    updateBullets(dt);
     updateEntities(dt, serverplayers);
   }
 
@@ -157,12 +169,55 @@
   function updateCursors(data) {
     serverplayers[data.id].xx = data.xx;
     serverplayers[data.id].yy = data.yy;
-    //console.log(serverplayers[data.id]);
   }
 
   function drawCursor(entity, color){
     ctx.fillStyle = color || '#ff0000';
     ctx.fillRect(entity.xx-2, entity.yy-2, 4, 4);
+  }
+
+  function shoot() {
+    var sprite = new Sprite('images/sprites.png', [0, 39], [18, 8]);
+    var angle = Math.atan2(player.target[1] - player.pos[1], player.target[0] - player.pos[0]);
+
+    var bullet = {
+      pos:[player.pos[0],player.pos[1]],
+      start: [player.pos[0], player.pos[1]],
+      angle: angle,
+      speed: 2000
+    };
+
+    socket.emit('shoot', bullet);
+
+    bullet.sprite = sprite;
+
+    bullet.distance = function() {
+      return Math.sqrt(Math.pow((bullet.pos[0] - bullet.start[0]), 2) + Math.pow((bullet.pos[1] - bullet.start[1]), 2));
+    };
+
+    bullets.push(bullet);
+  }
+
+  function drawBullets() {
+    for(var i=0; i<bullets.length; i++) {
+      ctx.save();
+      ctx.translate(bullets[i].pos[0], bullets[i].pos[1]);
+      ctx.rotate(bullets[i].angle);
+      bullets[i].sprite.render(ctx);
+      ctx.restore();
+    }
+  }
+
+  function updateBullets(dt){
+    for(var i=0; i<bullets.length; i++) {
+      bullets[i].pos[0] += bullets[i].speed * dt * Math.cos(bullets[i].angle);
+      bullets[i].pos[1] += bullets[i].speed * dt * Math.sin(bullets[i].angle);
+
+     if ( bullets[i].distance() >= 1000) {
+        bullets.splice(i, 1);
+        i--;
+     }
+    }
   }
 
   function collides(x, y, r, b, x2, y2, r2, b2) {
@@ -179,7 +234,7 @@
 
   function handleinput(dt) {
 
-    player.lastPosition=[player.pos[0] ,player.pos[1] ];
+    player.lastPosition=[player.pos[0] ,player.pos[1]];
 
     if(input.isDown('DOWN') || input.isDown('s')) {
       player.pos[1]+= playerSpeed * dt;
@@ -223,7 +278,7 @@
       }
       player.xx -= canvas.offsetLeft;
       player.yy -= canvas.offsetTop;
-      //console.log(x+','+y);
+
       var data = {
         xx: player.xx,
         yy: player.yy
@@ -235,24 +290,19 @@
 
   function targetClick(e) {
     if (e.pageX !== undefined && e.pageY !== undefined) {
-      targetX= e.pageX;
-      targetY = e.pageY;
+      player.target[0]= e.pageX;
+      player.target[1] = e.pageY;
     }
     else {
-      targetX = e.clientX + document.body.scrollLeft +
+      player.target[0] = e.clientX + document.body.scrollLeft +
       document.documentElement.scrollLeft;
-      targetY = e.clientY + document.body.scrollTop +
+      player.target[1] = e.clientY + document.body.scrollTop +
       document.documentElement.scrollTop;
     }
-    targetX -= canvas.offsetLeft;
-    targetY -= canvas.offsetTop;
-    console.log('click '+targetX+','+targetY);
-    bullets.push({
-      pos:[player.pos[0],player.pos[1]],
-      sprite: new Sprite('images/sprites.png', [0, 39], [18, 8]) ,
-      angle: Math.atan2(targetY - player.pos[1], targetX - player.pos[0])
-    });
-
+    player.target[0] -= canvas.offsetLeft;
+    player.target[1] -= canvas.offsetTop;
+    console.log('click '+ player.target[0]+','+ player.target[1]);
+    shoot();
   }
 
   function calculateAngle(entity) {

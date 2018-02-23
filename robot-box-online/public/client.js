@@ -160,10 +160,11 @@
           !boxCollides(player.pos, player.sprite.size, [30, 30], [50, 50])) {
         player.pos = player.lastPosition;
         console.log('bang');
-      } else {
-        socket.emit('move', data);
+        return;
       }
     }
+
+    socket.emit('move', data);
   }
 
   function updatePosition(data) {

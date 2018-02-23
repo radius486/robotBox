@@ -150,6 +150,11 @@
   }
 
   function sendOrBang(list, data) {
+    if (Object.keys(serverplayers).length === 0) {
+      socket.emit('move', data);
+      return;
+    }
+
     for (var key in list) {
       if (boxCollides(player.pos, player.sprite.size, list[key].pos, list[key].sprite.size) &&
           !boxCollides(player.pos, player.sprite.size, [30, 30], [50, 50])) {
@@ -258,7 +263,7 @@
 
     if (player.lastPosition[0] != player.pos[0] || player.lastPosition[1] != player.pos[1]) {
       var data = {
-        x: player.pos[0] ,
+        x: player.pos[0],
         y: player.pos[1]
       };
       sendOrBang(serverplayers, data);

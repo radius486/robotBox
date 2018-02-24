@@ -11,15 +11,16 @@ console.log('My server is running!!!');
 
 io.sockets.on('connection', newConnection);
 
-function Player(pos, target) {
+function Player(pos, target, energy) {
   this.pos = pos;
   this.target = target;
+  this.energy = energy;
 }
 
 function newConnection(socket) {
   console.log('New connection: ' + socket.id);
 
-  allPlayers[socket.id] = new Player([30, 30], [200, 200]);
+  allPlayers[socket.id] = new Player([30, 30], [200, 200], 100);
 
   var data = [socket.id, allPlayers];
 
@@ -36,6 +37,8 @@ function newConnection(socket) {
   socket.on('cursor', sendCursors);
 
   socket.on('shoot', sendBullets);
+
+  socket.on('damage', sendDamage);
 
   socket.on('disconnect', removePlayer);
 
@@ -56,6 +59,18 @@ function newConnection(socket) {
 
   function sendBullets(data) {
     socket.broadcast.emit('shoot', data);
+  }
+
+  function sendDamage(damage) {
+    allPlayers[socket.id].energy -= damage;
+
+    var data = {
+      id: socket.id,
+      damage: damage
+    };
+
+    socket.broadcast.emit('damage', data);
+    console.log('Player ' + data.id + ' energy: ' + allPlayers[socket.id].energy);
   }
 
   function removePlayer() {

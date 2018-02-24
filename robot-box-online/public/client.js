@@ -23,7 +23,8 @@
   var player = {
       pos:[30, 30],
       sprite: new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]),
-      target: [200, 200]
+      target: [200, 200],
+      energy: 100
   };
 
   var portal = {
@@ -82,6 +83,11 @@
     bullets.push(bullet);
   });
 
+  socket.on('damage', function(data) {
+    serverplayers[data.id].energy -= data.damage;
+    console.log('Player ' + data.id + ' energy: ' + serverplayers[data.id].energy);
+  });
+
   function main() {
     var now = Date.now();
     var dt = (now - lastTime) / 1000.0;
@@ -117,7 +123,7 @@
 
   function update(dt) {
     handleinput(dt);
-    player.sprite.update(dt);
+    updatePlayer(dt);
     updateEntities(dt, serverplayers);
     updateBullets(dt);
     updateExplosions(dt);
@@ -148,9 +154,17 @@
     }
   }
 
+  function updatePlayer (dt){
+    if (player.energy > 0) {
+      player.sprite.update(dt);
+    }
+  }
+
   function updateEntities(dt, list) {
     for (var key in list) {
-      list[key].sprite.update(dt);
+      if (list[key].energy > 0) {
+        list[key].sprite.update(dt);
+      }
     }
   }
 
@@ -227,6 +241,9 @@
         if (boxCollides(player.pos, player.sprite.size, bullets[i].pos, bullets[i].sprite.size) && bullets[i].distance() >= 50) {
           explosion(player.pos);
           bullets.splice(i, 1);
+          player.energy -= 10;
+          socket.emit('damage', 10);
+          console.log('My player energy: ' + player.energy);
           i--;
         } else if (bullets[i].distance() >= 500) {
           explosion(bullets[i].pos);
@@ -275,6 +292,8 @@
 
   function handleinput(dt) {
 
+    if (player.energy <= 0) { return false; }
+
     player.lastPosition=[player.pos[0] ,player.pos[1]];
 
     if(input.isDown('DOWN') || input.isDown('s')) {
@@ -307,27 +326,31 @@
   }
 
   function targetPosition(e) {
-      if (e.pageX !== undefined && e.pageY !== undefined) {
-          player.target[0] = e.pageX;
-          player.target[1] = e.pageY;
-      }
-      else {
-          player.target[0] = e.clientX + document.body.scrollLeft +
-          document.documentElement.scrollLeft;
-          player.target[1] = e.clientY + document.body.scrollTop +
-          document.documentElement.scrollTop;
-      }
-      player.target[0] -= canvas.offsetLeft;
-      player.target[1] -= canvas.offsetTop;
+    if (player.energy <= 0) { return false; }
 
-      var data = {
-        target: player.target
-      };
+    if (e.pageX !== undefined && e.pageY !== undefined) {
+      player.target[0] = e.pageX;
+      player.target[1] = e.pageY;
+    }
+    else {
+      player.target[0] = e.clientX + document.body.scrollLeft +
+      document.documentElement.scrollLeft;
+      player.target[1] = e.clientY + document.body.scrollTop +
+      document.documentElement.scrollTop;
+    }
+    player.target[0] -= canvas.offsetLeft;
+    player.target[1] -= canvas.offsetTop;
 
-      socket.emit('cursor', data);
+    var data = {
+      target: player.target
+    };
+
+    socket.emit('cursor', data);
   }
 
   function targetClick(e) {
+    if (player.energy <= 0) { return false; }
+
     if (e.pageX !== undefined && e.pageY !== undefined) {
       player.target[0]= e.pageX;
       player.target[1] = e.pageY;

@@ -11,16 +11,15 @@ console.log('My server is running!!!');
 
 io.sockets.on('connection', newConnection);
 
-function Player(pos, xx, yy) {
+function Player(pos, target) {
   this.pos = pos;
-  this.xx = xx;
-  this.yy = yy;
+  this.target = target;
 }
 
 function newConnection(socket) {
   console.log('New connection: ' + socket.id);
 
-  allPlayers[socket.id] = new Player([30, 30], 200, 200);
+  allPlayers[socket.id] = new Player([30, 30], [200, 200]);
 
   var data = [socket.id, allPlayers];
 
@@ -50,8 +49,7 @@ function newConnection(socket) {
 
   function sendCursors(data) {
     data.id = socket.id;
-    allPlayers[socket.id].xx[0] = data.xx;
-    allPlayers[socket.id].yy[1] = data.yy;
+    allPlayers[socket.id].target = data.target;
     socket.broadcast.emit('cursor', data);
     //console.log(socket.id + ': ' + data.xx + ', ' + data.yy);
   }

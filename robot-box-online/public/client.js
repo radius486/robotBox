@@ -23,6 +23,7 @@
   var player = {
       pos:[30, 30],
       sprite: new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]),
+      target: [200, 200]
   };
 
   var portal = {
@@ -35,6 +36,8 @@
   var serverplayers = {};
 
   var bullets = [];
+
+  var explosions = [];
 
   var canvas = document.getElementById("field");
   var ctx = canvas.getContext("2d");
@@ -51,12 +54,6 @@
         delete serverplayers[key];
       }
     }
-
-    player.angle = function() {
-      return Math.atan2(this.yy - this.pos[1], this.xx - this.pos[0]);
-    };
-
-    player.target = [null, null];
   });
 
   socket.on('getnewplayer', function(player) {
@@ -110,9 +107,10 @@
 
   function render() {
     clearCanvas();
-    drawBullets();
+    renderItems(bullets);
+    renderItems(explosions);
     renderEntity(portal);
-    renderEntity(player);
+    renderEntity(player, calculateAngle(player));
     renderEntities(serverplayers);
     drawCursor(player, '#000000');
   }
@@ -121,6 +119,7 @@
     handleinput(dt);
     player.sprite.update(dt);
     updateBullets(dt);
+    updateExplosions(dt);
     updateEntities(dt, serverplayers);
   }
 
@@ -128,18 +127,24 @@
     canvas.width = canvas.width;
   }
 
-  function renderEntity(entity) {
+  function renderEntity(entity, angle) {
     ctx.save();
     ctx.translate(entity.pos[0], entity.pos[1]);
-    ctx.rotate(calculateAngle(entity));
+    ctx.rotate(angle);
     entity.sprite.render(ctx);
     ctx.restore();
   }
 
   function renderEntities(list) {
     for (var key in list) {
-      renderEntity(list[key]);
+      renderEntity(list[key], calculateAngle(list[key]));
       drawCursor(list[key]);
+    }
+  }
+
+  function renderItems(list) {
+    for(var i=0; i<list.length; i++) {
+      renderEntity(list[i], list[i].angle);
     }
   }
 
@@ -173,13 +178,12 @@
   }
 
   function updateCursors(data) {
-    serverplayers[data.id].xx = data.xx;
-    serverplayers[data.id].yy = data.yy;
+    serverplayers[data.id].target = data.target;
   }
 
   function drawCursor(entity, color){
     ctx.fillStyle = color || '#ff0000';
-    ctx.fillRect(entity.xx-2, entity.yy-2, 4, 4);
+    ctx.fillRect(entity.target[0] - 2, entity.target[1] - 2, 4, 4);
   }
 
   function shoot() {
@@ -204,25 +208,40 @@
     bullets.push(bullet);
   }
 
-  function drawBullets() {
-    for(var i=0; i<bullets.length; i++) {
-      ctx.save();
-      ctx.translate(bullets[i].pos[0], bullets[i].pos[1]);
-      ctx.rotate(bullets[i].angle);
-      bullets[i].sprite.render(ctx);
-      ctx.restore();
-    }
-  }
-
   function updateBullets(dt){
     for(var i=0; i<bullets.length; i++) {
       bullets[i].pos[0] += bullets[i].speed * dt * Math.cos(bullets[i].angle);
       bullets[i].pos[1] += bullets[i].speed * dt * Math.sin(bullets[i].angle);
 
-     if ( bullets[i].distance() >= 1000) {
+     if ( bullets[i].distance() >= 500) {
+        explosion(bullets[i].pos);
         bullets.splice(i, 1);
         i--;
      }
+    }
+  }
+
+  function explosion(pos){
+    explosions.push({
+      pos: pos,
+      sprite: new Sprite('images/sprites.png',
+        [0, 117],
+        [39, 39],
+        16,
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        null,
+        true)
+    });
+  }
+
+  function updateExplosions(dt){
+    for(var i=0; i<explosions.length; i++) {
+      explosions[i].sprite.update(dt);
+
+      if(explosions[i].sprite.done) {
+        explosions.splice(i, 1);
+        i--;
+      }
     }
   }
 
@@ -273,25 +292,23 @@
 
   function targetPosition(e) {
       if (e.pageX !== undefined && e.pageY !== undefined) {
-          player.xx = e.pageX;
-          player.yy = e.pageY;
+          player.target[0] = e.pageX;
+          player.target[1] = e.pageY;
       }
       else {
-          player.xx = e.clientX + document.body.scrollLeft +
+          player.target[0] = e.clientX + document.body.scrollLeft +
           document.documentElement.scrollLeft;
-          player.yy = e.clientY + document.body.scrollTop +
+          player.target[1] = e.clientY + document.body.scrollTop +
           document.documentElement.scrollTop;
       }
-      player.xx -= canvas.offsetLeft;
-      player.yy -= canvas.offsetTop;
+      player.target[0] -= canvas.offsetLeft;
+      player.target[1] -= canvas.offsetTop;
 
       var data = {
-        xx: player.xx,
-        yy: player.yy
+        target: player.target
       };
 
       socket.emit('cursor', data);
-
   }
 
   function targetClick(e) {
@@ -312,7 +329,7 @@
   }
 
   function calculateAngle(entity) {
-    return Math.atan2(entity.yy - entity.pos[1], entity.xx - entity.pos[0]);
+    return Math.atan2(entity.target[1] - entity.pos[1], entity.target[0] - entity.pos[0]);
   }
 
   canvas.addEventListener("mousedown", targetClick, false);

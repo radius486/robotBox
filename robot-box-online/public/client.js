@@ -107,20 +107,20 @@
 
   function render() {
     clearCanvas();
-    renderItems(bullets);
-    renderItems(explosions);
     renderEntity(portal);
     renderEntity(player, calculateAngle(player));
     renderEntities(serverplayers);
+    renderItems(bullets);
+    renderItems(explosions);
     drawCursor(player, '#000000');
   }
 
   function update(dt) {
     handleinput(dt);
     player.sprite.update(dt);
+    updateEntities(dt, serverplayers);
     updateBullets(dt);
     updateExplosions(dt);
-    updateEntities(dt, serverplayers);
   }
 
   function clearCanvas(){
@@ -213,11 +213,27 @@
       bullets[i].pos[0] += bullets[i].speed * dt * Math.cos(bullets[i].angle);
       bullets[i].pos[1] += bullets[i].speed * dt * Math.sin(bullets[i].angle);
 
-     if ( bullets[i].distance() >= 500) {
-        explosion(bullets[i].pos);
-        bullets.splice(i, 1);
-        i--;
-     }
+      //Bullets with serverplayer collision
+      for (var key in serverplayers) {
+        if(bullets[i] && boxCollides(serverplayers[key].pos, serverplayers[key].sprite.size, bullets[i].pos, bullets[i].sprite.size) && bullets[i].distance() >= 50) {
+          explosion(serverplayers[key].pos);
+          bullets.splice(i, 1);
+          i--;
+        }
+      }
+
+      if (bullets[i]) {
+        //Bullets with player collision
+        if (boxCollides(player.pos, player.sprite.size, bullets[i].pos, bullets[i].sprite.size) && bullets[i].distance() >= 50) {
+          explosion(player.pos);
+          bullets.splice(i, 1);
+          i--;
+        } else if (bullets[i].distance() >= 500) {
+          explosion(bullets[i].pos);
+          bullets.splice(i, 1);
+          i--;
+        }
+      }
     }
   }
 

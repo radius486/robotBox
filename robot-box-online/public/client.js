@@ -14,6 +14,10 @@
 
   var lastTime;
 
+  var delta = [0, 0];
+
+  var lastDelta = [0, 0];
+
   var playerSpeed = 200;
 
   var enemiesSpeed = 10;
@@ -22,6 +26,7 @@
 
   var player = {
       pos:[30, 30],
+      rpos: [30, 30],
       sprite: new Sprite('images/sprites.png', [0, 0], [39, 39], 16, [0, 1]),
       target: [200, 200],
       energy: 100
@@ -52,6 +57,10 @@
 
       if (key == playerId) {
         player = serverplayers[key];
+        player.rpos = [];
+        player.rpos[0] = player.pos[0];
+        player.rpos[1] = player.pos[1];
+
         delete serverplayers[key];
       }
     }
@@ -113,8 +122,8 @@
 
   function render() {
     clearCanvas();
-    renderEntity(portal);
-    renderEntity(player, calculateAngle(player));
+    renderEntity(portal, 0, delta);
+    renderEntity(player, calculateAngle(player, true), [0, 0], true);
     renderEntities(serverplayers);
     renderItems(bullets);
     renderItems(explosions);
@@ -133,9 +142,14 @@
     canvas.width = canvas.width;
   }
 
-  function renderEntity(entity, angle) {
+  function renderEntity(entity, angle, delta, isplayer) {
+    delta = typeof delta !== 'undefined' ? delta : [0, 0];
     ctx.save();
-    ctx.translate(entity.pos[0], entity.pos[1]);
+    if (isplayer) {
+      ctx.translate(entity.rpos[0], entity.rpos[1]);
+    } else {
+      ctx.translate(entity.pos[0] - delta[0], entity.pos[1] - delta[1]);
+    }
     ctx.rotate(angle);
     entity.sprite.render(ctx);
     ctx.restore();
@@ -143,14 +157,14 @@
 
   function renderEntities(list) {
     for (var key in list) {
-      renderEntity(list[key], calculateAngle(list[key]));
-      drawCursor(list[key]);
+      renderEntity(list[key], calculateAngle(list[key]), delta, false);
+      drawCursor(list[key], '#ff0000', delta);
     }
   }
 
   function renderItems(list) {
     for(var i=0; i<list.length; i++) {
-      renderEntity(list[i], list[i].angle);
+      renderEntity(list[i], list[i].angle, delta);
     }
   }
 
@@ -178,6 +192,8 @@
       if (boxCollides(player.pos, player.sprite.size, list[key].pos, list[key].sprite.size) &&
           !boxCollides(player.pos, player.sprite.size, [30, 30], [50, 50])) {
         player.pos = player.lastPosition;
+        delta = [lastDelta[0], lastDelta[1]];
+        player.rpos = [player.lastPosition[0] - delta[0], player.lastPosition[1] - delta[1]];
         console.log('bang');
         return;
       }
@@ -195,20 +211,21 @@
     serverplayers[data.id].target = data.target;
   }
 
-  function drawCursor(entity, color){
+  function drawCursor(entity, color, delta){
     ctx.fillStyle = color || '#ff0000';
-    ctx.fillRect(entity.target[0] - 2, entity.target[1] - 2, 4, 4);
+    delta = typeof delta !== 'undefined' ? delta : [0, 0];
+    ctx.fillRect(entity.target[0] - delta[0] - 2, entity.target[1] - delta[1] - 2, 4, 4);
   }
 
   function shoot() {
     var sprite = new Sprite('images/sprites.png', [0, 39], [18, 8]);
-    var angle = Math.atan2(player.target[1] - player.pos[1], player.target[0] - player.pos[0]);
+    var angle = Math.atan2(player.target[1] - player.rpos[1], player.target[0] - player.rpos[0]);
 
     var bullet = {
       pos:[player.pos[0],player.pos[1]],
       start: [player.pos[0], player.pos[1]],
       angle: angle,
-      speed: 2000
+      speed: 1000
     };
 
     socket.emit('shoot', bullet);
@@ -294,25 +311,71 @@
 
     if (player.energy <= 0) { return false; }
 
-    player.lastPosition=[player.pos[0] ,player.pos[1]];
+    player.lastPosition = [player.pos[0] ,player.pos[1]];
+    lastDelta = [delta[0], delta[1]];
 
-    if(input.isDown('DOWN') || input.isDown('s')) {
-      player.pos[1]+= playerSpeed * dt;
+    if (input.isDown('DOWN') || input.isDown('s')) {
+      player.pos[1]+= Math.floor(playerSpeed * dt);
+
+      if(player.pos[1] > canvas.height/2) {
+        player.rpos[1] = canvas.height/2;
+        delta[1]+= Math.floor(playerSpeed * dt);
+      } else {
+        player.rpos[1] = player.pos[1];
+      }
     }
 
-    if(input.isDown('UP') || input.isDown('w')) {
-      player.pos[1]-= playerSpeed * dt;
+    if (input.isDown('UP') || input.isDown('w')) {
+      player.pos[1]-= Math.floor(playerSpeed * dt);
+
+      if (player.pos[1] - player.sprite.size[1]/2 < 0) {
+        player.pos[1] = player.lastPosition[1];
+      }
+
+      if (player.pos[1] > canvas.height/2 || delta[1] > 0) {
+        player.rpos[1] = canvas.height/2;
+        delta[1]-= Math.floor(playerSpeed * dt);
+
+        if (delta[1] < 0){
+          delta[1] = 0;
+        }
+      } else {
+        player.rpos[1] = player.pos[1];
+      }
     }
 
-    if(input.isDown('LEFT') || input.isDown('a')) {
-      player.pos[0]-= playerSpeed * dt;
+    if (input.isDown('LEFT') || input.isDown('a')) {
+      player.pos[0]-= Math.floor(playerSpeed * dt);
+
+      if (player.pos[0] - player.sprite.size[0]/2 < 0) {
+        player.pos[0] = player.lastPosition[0];
+      }
+
+      if (player.pos[0] > canvas.width/2 || delta[0] > 0) {
+        player.rpos[0] = canvas.width/2;
+        delta[0]-= Math.floor(playerSpeed * dt);
+
+        if (delta[0] < 0){
+          delta[0] = 0;
+        }
+      } else {
+        player.rpos[0] = player.pos[0];
+      }
     }
 
-    if(input.isDown('RIGHT') || input.isDown('d')) {
-      player.pos[0]+= playerSpeed * dt;
+    if (input.isDown('RIGHT') || input.isDown('d')) {
+      player.pos[0]+= Math.floor(playerSpeed * dt);
+
+      if (player.pos[0] > canvas.width/2) {
+        player.rpos[0] = canvas.width/2;
+        delta[0]+= Math.floor(playerSpeed * dt);
+      } else {
+        player.rpos[0] = player.pos[0];
+      }
+
     }
 
-    if(input.isDown('SPACE') ) {
+    if (input.isDown('SPACE') ) {
 
     }
 
@@ -342,7 +405,7 @@
     player.target[1] -= canvas.offsetTop;
 
     var data = {
-      target: player.target
+      target: [player.target[0] + delta[0], player.target[1] + delta[1]]
     };
 
     socket.emit('cursor', data);
@@ -363,12 +426,20 @@
     }
     player.target[0] -= canvas.offsetLeft;
     player.target[1] -= canvas.offsetTop;
-    console.log('click '+ player.target[0]+','+ player.target[1]);
+
+    var x = player.target[0] + delta[0];
+    var y = player.target[1] + delta[1];
+
+    console.log('Target: '+ x +', '+ y);
     shoot();
   }
 
-  function calculateAngle(entity) {
-    return Math.atan2(entity.target[1] - entity.pos[1], entity.target[0] - entity.pos[0]);
+  function calculateAngle(entity, isPlayer) {
+    if (isPlayer) {
+      return Math.atan2(entity.target[1] - entity.rpos[1], entity.target[0] - entity.rpos[0]);
+    } else {
+      return Math.atan2(entity.target[1] - entity.pos[1], entity.target[0] - entity.pos[0]);
+    }
   }
 
   canvas.addEventListener("mousedown", targetClick, false);

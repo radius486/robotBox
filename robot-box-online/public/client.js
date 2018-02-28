@@ -24,6 +24,8 @@
 
   var triggerDistance = 200;
 
+  var lastPoint = [1000, 1000];
+
   var player = {
       pos:[30, 30],
       rpos: [30, 30],
@@ -34,6 +36,21 @@
 
   var portal = {
     pos: [30, 30],
+    sprite: new Sprite('images/portal.png', [0, 0], [50, 50], 16, [0, 1])
+  };
+
+  var portal2 = {
+    pos: [970, 30],
+    sprite: new Sprite('images/portal.png', [0, 0], [50, 50], 16, [0, 1])
+  };
+
+  var portal3 = {
+    pos: [970, 970],
+    sprite: new Sprite('images/portal.png', [0, 0], [50, 50], 16, [0, 1])
+  };
+
+  var portal4 = {
+    pos: [30, 970],
     sprite: new Sprite('images/portal.png', [0, 0], [50, 50], 16, [0, 1])
   };
 
@@ -123,6 +140,9 @@
   function render() {
     clearCanvas();
     renderEntity(portal, 0, delta);
+    renderEntity(portal2, 0, delta);
+    renderEntity(portal3, 0, delta);
+    renderEntity(portal4, 0, delta);
     renderEntity(player, calculateAngle(player, true), [0, 0], true);
     renderEntities(serverplayers);
     renderItems(bullets);
@@ -205,6 +225,8 @@
   function updatePosition(data) {
     serverplayers[data.id].pos[0] = data.x;
     serverplayers[data.id].pos[1] = data.y;
+    serverplayers[data.id].target[0] = data.xx;
+    serverplayers[data.id].target[1] = data.yy;
   }
 
   function updateCursors(data) {
@@ -315,60 +337,90 @@
     lastDelta = [delta[0], delta[1]];
 
     if (input.isDown('DOWN') || input.isDown('s')) {
-      player.pos[1]+= Math.floor(playerSpeed * dt);
+      player.pos[1] += Math.floor(playerSpeed * dt);
 
-      if(player.pos[1] > canvas.height/2) {
-        player.rpos[1] = canvas.height/2;
-        delta[1]+= Math.floor(playerSpeed * dt);
+      if (player.pos[1] + player.sprite.size[1]/2 >= lastPoint[1]) {
+        player.pos[1] = player.lastPosition[1];
+      }
+
+      if(player.pos[1] > canvas.height/2 && player.pos[1] <= lastPoint[1] - canvas.height/2) {
+        player.rpos[1] = Math.floor(canvas.height/2);
+        delta[1] += Math.floor(playerSpeed * dt);
+      } else if (player.pos[1] > lastPoint[1] - canvas.height/2) {
+
+        var maxDeltaY = lastPoint[1] - Math.floor(canvas.height);
+
+        if (delta[1] < maxDeltaY){
+          delta[1] = maxDeltaY;
+        }
+
+        player.rpos[1] = player.pos[1] - delta[1];
       } else {
         player.rpos[1] = player.pos[1];
       }
     }
 
     if (input.isDown('UP') || input.isDown('w')) {
-      player.pos[1]-= Math.floor(playerSpeed * dt);
+      player.pos[1] -= Math.floor(playerSpeed * dt);
 
       if (player.pos[1] - player.sprite.size[1]/2 < 0) {
         player.pos[1] = player.lastPosition[1];
       }
 
-      if (player.pos[1] > canvas.height/2 || delta[1] > 0) {
+      if ((player.pos[1] > canvas.height/2 || delta[1] > 0) && player.pos[1] <= lastPoint[1] - canvas.height/2) {
         player.rpos[1] = canvas.height/2;
-        delta[1]-= Math.floor(playerSpeed * dt);
+        delta[1] -= Math.floor(playerSpeed * dt);
 
         if (delta[1] < 0){
           delta[1] = 0;
         }
+      } else if (player.pos[1] > lastPoint[1] - canvas.height/2) {
+        player.rpos[1] = player.pos[1] - delta[1];
       } else {
         player.rpos[1] = player.pos[1];
       }
     }
 
     if (input.isDown('LEFT') || input.isDown('a')) {
-      player.pos[0]-= Math.floor(playerSpeed * dt);
+      player.pos[0] -= Math.floor(playerSpeed * dt);
 
       if (player.pos[0] - player.sprite.size[0]/2 < 0) {
         player.pos[0] = player.lastPosition[0];
       }
 
-      if (player.pos[0] > canvas.width/2 || delta[0] > 0) {
-        player.rpos[0] = canvas.width/2;
-        delta[0]-= Math.floor(playerSpeed * dt);
+      if ((player.pos[0] > canvas.width/2 || delta[0] > 0) && player.pos[0] <= lastPoint[0] - canvas.width/2) {
+        player.rpos[0] = Math.floor(canvas.width/2);
+        delta[0] -= Math.floor(playerSpeed * dt);
 
         if (delta[0] < 0){
           delta[0] = 0;
         }
+      } else if (player.pos[0] > lastPoint[0] - canvas.width/2) {
+        player.rpos[0] = player.pos[0] - delta[0];
       } else {
         player.rpos[0] = player.pos[0];
       }
     }
 
     if (input.isDown('RIGHT') || input.isDown('d')) {
-      player.pos[0]+= Math.floor(playerSpeed * dt);
+      player.pos[0] += Math.floor(playerSpeed * dt);
 
-      if (player.pos[0] > canvas.width/2) {
+      if (player.pos[0] + player.sprite.size[0]/2 >= lastPoint[0]) {
+        player.pos[0] = player.lastPosition[0];
+      }
+
+      if (player.pos[0] > canvas.width/2 && player.pos[0] <= lastPoint[0] - canvas.width/2) {
         player.rpos[0] = canvas.width/2;
-        delta[0]+= Math.floor(playerSpeed * dt);
+        delta[0] += Math.floor(playerSpeed * dt);
+      } else  if (player.pos[0] > lastPoint[0] - canvas.width/2) {
+
+        var maxDeltaX = lastPoint[0] - Math.floor(canvas.width);
+
+        if (delta[0] < maxDeltaX){
+          delta[0] = maxDeltaX;
+        }
+
+        player.rpos[0] = player.pos[0] - delta[0];
       } else {
         player.rpos[0] = player.pos[0];
       }
@@ -382,8 +434,11 @@
     if (player.lastPosition[0] != player.pos[0] || player.lastPosition[1] != player.pos[1]) {
       var data = {
         x: player.pos[0],
-        y: player.pos[1]
+        y: player.pos[1],
+        xx: player.target[0] + delta[0],
+        yy: player.target[1] + delta[1]
       };
+
       sendOrBang(serverplayers, data);
     }
   }
@@ -415,7 +470,7 @@
     if (player.energy <= 0) { return false; }
 
     if (e.pageX !== undefined && e.pageY !== undefined) {
-      player.target[0]= e.pageX;
+      player.target[0] = e.pageX;
       player.target[1] = e.pageY;
     }
     else {

@@ -46,6 +46,8 @@ function newConnection(socket) {
     data.id = socket.id;
     allPlayers[socket.id].pos[0] = data.x;
     allPlayers[socket.id].pos[1] = data.y;
+    allPlayers[socket.id].target[0] = data.xx;
+    allPlayers[socket.id].target[1] = data.yy;
     socket.broadcast.emit('move', data);
     //console.log(socket.id + ': ' + data.x + ', ' + data.y);
   }

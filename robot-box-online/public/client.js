@@ -26,6 +26,10 @@
 
   var lastPoint = [1000, 1000];
 
+  var frames = 0;
+
+  var shootTimeout = 0;
+
   var player = {
       pos:[30, 30],
       rpos: [30, 30],
@@ -117,6 +121,7 @@
   function main() {
     var now = Date.now();
     var dt = (now - lastTime) / 1000.0;
+
     render();
     update(dt);
 
@@ -151,6 +156,8 @@
   }
 
   function update(dt) {
+    frames++;
+    calculateTimeout(dt);
     handleinput(dt);
     updatePlayer(dt);
     updateEntities(dt, serverplayers);
@@ -204,6 +211,9 @@
 
   function sendOrBang(list, data) {
     if (Object.keys(serverplayers).length === 0) {
+      //if(frames % 6 === 0) {
+        //socket.emit('move', data);
+      //}
       socket.emit('move', data);
       return;
     }
@@ -219,7 +229,12 @@
       }
     }
 
+    //if(frames % 6 === 0) {
+    //  socket.emit('move', data);
+    //  console.log(frames);
+    //}
     socket.emit('move', data);
+
   }
 
   function updatePosition(data) {
@@ -240,6 +255,10 @@
   }
 
   function shoot() {
+    if (shootTimeout > 0) { return false; }
+
+    shootTimeout = 0.5;
+
     var sprite = new Sprite('images/sprites.png', [0, 39], [18, 8]);
     var angle = Math.atan2(player.target[1] - player.rpos[1], player.target[0] - player.rpos[0]);
 
@@ -494,6 +513,14 @@
       return Math.atan2(entity.target[1] - entity.rpos[1], entity.target[0] - entity.rpos[0]);
     } else {
       return Math.atan2(entity.target[1] - entity.pos[1], entity.target[0] - entity.pos[0]);
+    }
+  }
+
+  function calculateTimeout(dt) {
+    if (shootTimeout > 0) {
+      shootTimeout -= dt;
+    } else {
+      shootTimeout = 0;
     }
   }
 

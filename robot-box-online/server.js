@@ -49,18 +49,19 @@ function newConnection(socket) {
     allPlayers[socket.id].target[0] = data.xx;
     allPlayers[socket.id].target[1] = data.yy;
     socket.broadcast.emit('move', data);
-    //console.log(socket.id + ': ' + data.x + ', ' + data.y);
+    console.log(socket.id + ': ' + data.x + ', ' + data.y);
   }
 
   function sendCursors(data) {
     data.id = socket.id;
     allPlayers[socket.id].target = data.target;
     socket.broadcast.emit('cursor', data);
-    //console.log(socket.id + ': ' + data.xx + ', ' + data.yy);
+    console.log(socket.id + ': ' + data.target[0] + ', ' + data.target[1]);
   }
 
   function sendBullets(data) {
     socket.broadcast.emit('shoot', data);
+    console.log(socket.id + ': ' + data);
   }
 
   function sendDamage(damage) {

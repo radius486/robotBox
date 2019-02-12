@@ -43,20 +43,20 @@ function newConnection(socket) {
   socket.on('disconnect', removePlayer);
 
   function sendPosition(data) {
-    data.id = socket.id;
-    allPlayers[socket.id].pos[0] = data.x;
-    allPlayers[socket.id].pos[1] = data.y;
-    allPlayers[socket.id].target[0] = data.xx;
-    allPlayers[socket.id].target[1] = data.yy;
+    allPlayers[socket.id].pos[0] = data[0];
+    allPlayers[socket.id].pos[1] = data[1];
+    allPlayers[socket.id].target[0] = data[2];
+    allPlayers[socket.id].target[1] = data[3];
+    data[4] = socket.id;
     socket.broadcast.emit('move', data);
-    console.log(socket.id + ': ' + data.x + ', ' + data.y);
+    console.log(socket.id + ': ' + data[0] + ', ' + data[1]);
   }
 
   function sendCursors(data) {
-    data.id = socket.id;
-    allPlayers[socket.id].target = data.target;
+    allPlayers[socket.id].target = data;
+    data[2] = socket.id;
     socket.broadcast.emit('cursor', data);
-    console.log(socket.id + ': ' + data.target[0] + ', ' + data.target[1]);
+    console.log(socket.id + ': ' + data[0] + ', ' + data[1]);
   }
 
   function sendBullets(data) {

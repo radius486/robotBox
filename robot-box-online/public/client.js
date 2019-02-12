@@ -238,14 +238,19 @@
   }
 
   function updatePosition(data) {
-    serverplayers[data.id].pos[0] = data.x;
-    serverplayers[data.id].pos[1] = data.y;
-    serverplayers[data.id].target[0] = data.xx;
-    serverplayers[data.id].target[1] = data.yy;
+    var id = data[4];
+
+    serverplayers[id].pos[0] = data[0];
+    serverplayers[id].pos[1] = data[1];
+    serverplayers[id].target[0] = data[2];
+    serverplayers[id].target[1] = data[3];
   }
 
   function updateCursors(data) {
-    serverplayers[data.id].target = data.target;
+    var id = data[2];
+
+    serverplayers[id].target[0] = data[0];
+    serverplayers[id].target[1] = data[1];
   }
 
   function drawCursor(entity, color, delta){
@@ -451,12 +456,13 @@
     }
 
     if (player.lastPosition[0] != player.pos[0] || player.lastPosition[1] != player.pos[1]) {
-      var data = {
-        x: player.pos[0],
-        y: player.pos[1],
-        xx: player.target[0] + delta[0],
-        yy: player.target[1] + delta[1]
-      };
+      //var data = {
+     //   x: player.pos[0],
+     //   y: player.pos[1],
+     //   xx: player.target[0] + delta[0],
+     //   yy: player.target[1] + delta[1]
+     // };
+      var data = [player.pos[0], player.pos[1], player.target[0] + delta[0], player.target[1] + delta[1]];
 
       sendOrBang(serverplayers, data);
     }
@@ -478,9 +484,7 @@
     player.target[0] -= canvas.offsetLeft;
     player.target[1] -= canvas.offsetTop;
 
-    var data = {
-      target: [player.target[0] + delta[0], player.target[1] + delta[1]]
-    };
+    var data = [player.target[0] + delta[0], player.target[1] + delta[1]];
 
     socket.emit('cursor', data);
   }
